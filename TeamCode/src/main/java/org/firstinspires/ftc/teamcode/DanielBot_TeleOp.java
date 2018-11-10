@@ -33,7 +33,6 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
 
 import static java.lang.Math.abs;
@@ -52,12 +51,12 @@ public class DanielBot_TeleOp extends OpMode {
     /* Declare OpMode members. */
     DanielBot_Hardware robot = new DanielBot_Hardware(); // use the class created to define FutureBot's hardware
 
-    double   x = 0;
-    double   y = 0;
-    double   z = 0;
+    double  x = 0;
+    double  y = 0;
+    double  z = 0;
 
     boolean collectOtronACTIVE = false;
-    boolean collectOtronCHARGING = false;
+    boolean collectOtronSWITCHING = false;
     boolean collctOtronREVERSE = false;
 
     // Code to run once when the driver hits INIT
@@ -158,24 +157,26 @@ public class DanielBot_TeleOp extends OpMode {
         else
             robot.extendoArm5000.setPower(0);
 
-        if ((gamepad1.right_bumper || gamepad1.left_bumper) && !collectOtronACTIVE)
-            collectOtronCHARGING = true;
-        else if ((gamepad1.left_bumper || gamepad1.right_bumper) && collectOtronACTIVE)
-            collectOtronACTIVE = false;
-        if (gamepad1.right_bumper && collectOtronCHARGING)
-            collctOtronREVERSE = true;
-        else if (gamepad1.left_bumper && collectOtronCHARGING)
-            collctOtronREVERSE = false;
-        if (!(gamepad1.right_bumper && gamepad1.left_bumper) && collectOtronCHARGING) {
-            collectOtronCHARGING = false;
-            collectOtronACTIVE = true;
+        if (gamepad1.right_bumper || gamepad1.left_bumper)
+            collectOtronSWITCHING = true;
+        else if (collectOtronSWITCHING) {
+            collectOtronSWITCHING = false;
+            if (collectOtronACTIVE)
+                collectOtronACTIVE = false;
+            else
+                collectOtronACTIVE = true;
         }
+
+        if (gamepad1.right_bumper)
+            collctOtronREVERSE = true;
+        else if (gamepad1.left_bumper)
+            collctOtronREVERSE = false;
 
         if (collectOtronACTIVE && !collctOtronREVERSE)
             robot.collectOtron.setPower(1);
-        else if (collectOtronACTIVE && collctOtronREVERSE)
+        else if (collectOtronACTIVE)
             robot.collectOtron.setPower(-1);
-        else if (!collectOtronACTIVE)
+        else
             robot.collectOtron.setPower(0);
 
     }
