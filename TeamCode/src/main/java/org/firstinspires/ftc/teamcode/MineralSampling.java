@@ -76,7 +76,7 @@ public class MineralSampling extends OpenCVPipeline {
     public double[] color = new double[4];
 
     // this is just here so we can expose it later thru getContours.
-    private List<MatOfPoint> contoursGold = new ArrayList<>();
+    private List<MatOfPoint> contoursGold    = new ArrayList<>();
     private List<MatOfPoint> countoursSilver = new ArrayList<>();
 
     public synchronized void setShowCountours(boolean enabled) {
@@ -103,7 +103,7 @@ public class MineralSampling extends OpenCVPipeline {
             s2G = Range.clip(sa2, 0, 255);
             v2G = Range.clip(va2, 0, 255);
         }
-        else{
+        else {
             h1S = Range.clip(hu1, 0, 255);
             s1S = Range.clip(sa1, 0, 255);
             v1S = Range.clip(va1, 0, 255);
@@ -114,12 +114,8 @@ public class MineralSampling extends OpenCVPipeline {
 
     }
 
-    public synchronized double[] getCenter (){
-
-        return color;
-    }
-
-    public synchronized int[] getScore (){
+    public synchronized double[] getCenter () { return color; }
+    public synchronized int[]    getScore  (){
         return score;
     }
 
