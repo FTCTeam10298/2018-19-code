@@ -30,74 +30,61 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
-import org.firstinspires.ftc.robotcore.external.navigation.RelicRecoveryVuMark;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 
 import ftclib.FtcChoiceMenu;
 import ftclib.FtcMenu;
 import ftclib.FtcValueMenu;
 import hallib.HalDashboard;
 
-@Autonomous(name="Daniel Autonomous", group ="FutureBot")
+@Autonomous(name="Daniel Autonomous", group ="DanielBot")
 public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuButtons {
-    public enum Alliance {
-        ALLIANCE_RED,
-        ALLIANCE_BLUE
-    }
     public enum StartPosition {
-        STARTPOSITION1,
-        STARTPOSITION2
+        SILVER,
+        GOLD
     }
     public enum RunMode {
         RUNMODE_AUTO,
         RUNMODE_DEBUG
     }
-    public enum Column {
-        COLUMN_LEFT,
-        COLUMN_CENTER,
-        COLUMN_RIGHT
+    public enum Sampling {
+        ZERO,
+        ONE,
+        TWO
     }
-    public enum CorrectJewel {
+    public enum Crater {
+        NEAR,
+        FAR
+    }
+    public enum Depot {
         YES,
         NO
-    }
-    public enum GetExtraGlyph {
-        NEVER,
-        IF_NEAR,
-        IF_NEAR_OR_CENTER,
-        ALWAYS
     }
 
 
     // Menu option variables
     RunMode        runmode       = RunMode.RUNMODE_AUTO;
-    Alliance       alliance      = Alliance.ALLIANCE_RED;
     int            delay         = 0;
-    StartPosition  startposition = StartPosition.STARTPOSITION1;
-    CorrectJewel   correctjewel  = CorrectJewel.YES;
-    GetExtraGlyph getExtraGlyph = GetExtraGlyph.NEVER;
+    StartPosition  startposition = StartPosition.SILVER;
+    Crater         crater        = Crater.NEAR;
+    Depot          depot         = Depot.YES;
+    Sampling       sampling      = Sampling.ZERO;
 
     /* Declare OpMode members. */
     private HalDashboard dashboard;
     DanielBot_Hardware   robot   = new DanielBot_Hardware();
-    ColorSensor          color_sensor;
-    ColorSensor          color_left;
-    ColorSensor          color_right;
 
     static final double  COUNTS_PER_MOTOR_REV      = 1120;    // Rev HD Hex v2.1 Motor encoder
     static final double  DRIVE_GEAR_REDUCTION      = .825;       // This is < 1.0 if geared for torque
     static final double  WHEEL_DIAMETER_INCHES     = 4.0;     // For figuring circumference
     static final double  COUNTS_PER_INCH           = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
-            (WHEEL_DIAMETER_INCHES * 3.1416);
+            (WHEEL_DIAMETER_INCHES * 3.14159265);
 
-    Column column = Column.COLUMN_CENTER;
-
+    static final double  LIFTONATOR_CONSTANT        = 280/9; //constant that converts liftonator to degrees (1120*10/360)
+    static final double  EXTENDOARM_CONSTANT        = 4480/(13 * 3.14159265); //constant that converts ExtendoArm to inches 1120/(3.25 * 3.14159265)
     /**
      * Define the variable we will use to store our instance of the Vuforia
      * localization engine.
@@ -111,9 +98,6 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
     @Override public void runOpMode() {
         // Initialize the hardware -----------------------------------------------------------------
         robot.init(hardwareMap);
-        color_left = hardwareMap.colorSensor.get("left_square");
-        color_right = hardwareMap.colorSensor.get("right_square");
-
         // Initialize dashboard --------------------------------------------------------------------
         dashboard = HalDashboard.createInstance(telemetry);
 
@@ -157,48 +141,27 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
 
 
         if (DoTask("Init", runmode)) {
-            // Init
-
+            robot.pivotLock.setPosition(0);
+            sleep(100);
+            SlavedLift(1, 90);
+            robot.extensionLock.setPosition(1);
+            sleep(100);
+            ExtendoArm5000_ACTIVATE(.5, 6);
         }
 
         if (DoTask("Mineral Sampling", runmode)) {
-//            if (vuMark == RelicRecoveryVuMark.LEFT) {
-//                column = Column.COLUMN_LEFT;
-//                dashboard.displayPrintf(8, "VuMark: LEFT visible");
-//            } else if (vuMark == RelicRecoveryVuMark.CENTER) {
-//                column = Column.COLUMN_CENTER;
-//                dashboard.displayPrintf(8, "VuMark: CENTER visible");
-//            } else if (vuMark == RelicRecoveryVuMark.RIGHT) {
-//                column = Column.COLUMN_RIGHT;
-//                dashboard.displayPrintf(8, "VuMark: RIGHT visible");
-//            } else {
-//                column = Column.COLUMN_CENTER;
-//                dashboard.displayPrintf(8, "VuMark: UNKNOWN visible");
-//            }
+
         }
 
-        if (DoTask("Knock off jewel", runmode)) {
+        if (DoTask("Drive my Car", runmode)) {
 
         }
 
         // drive
-        if (DoTask("Drive to CryptoBox", runmode)) {
+        if (DoTask("Park", runmode)) {
 
         }
 
-//        // woah
-//        if (getExtraGlyph == GetExtraGlyph.ALWAYS ||
-//                (getExtraGlyph == GetExtraGlyph.IF_NEAR_OR_CENTER && column == Column.COLUMN_CENTER) ||
-//                (
-//                    (getExtraGlyph == GetExtraGlyph.IF_NEAR_OR_CENTER || getExtraGlyph == GetExtraGlyph.IF_NEAR) &&
-//                    (
-//                        (alliance == Alliance.ALLIANCE_RED && column == Column.COLUMN_RIGHT) ||
-//                        (alliance == Alliance.ALLIANCE_BLUE && column == Column.COLUMN_LEFT)
-//                    )
-//                )
-//        ) {
-//
-//        }
 
     }
 
@@ -280,56 +243,6 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
         DrivePowerAll(0);
     }
 
-    /**
-     * DriveRobotSquare drives the robot forward at the set power level up to a line
-     * @param power Power level to drive forward with
-     */
-    void DriveRobotSquare (double power)
-    {
-        robot.frontLeftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.frontRightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        robot.frontLeftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        robot.frontRightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        boolean done = false;
-
-        while (!done) {
-            dashboard.displayPrintf(3, "Color right red: " + color_right.red());
-            dashboard.displayPrintf(4, "Color right blue: " + color_right.blue());
-            dashboard.displayPrintf(5, "Color left red: " + color_left.red());
-            dashboard.displayPrintf(6, "Color left blue: " + color_left.blue());
-            if (alliance == Alliance.ALLIANCE_RED) {
-                if (color_left.red()<15)
-                    robot.frontLeftDrive.setPower(power);
-                else
-                    robot.frontLeftDrive.setPower(0);
-                if (color_right.red()<15)
-                    robot.frontRightDrive.setPower(power);
-                else
-                    robot.frontRightDrive.setPower(0);
-                if ((color_left.red()>15)&&(color_right.red()>15))
-                    done = true;
-            } else { // Alliance.ALLIANCE_BLUE
-                if (color_left.blue()<15)
-                    robot.frontLeftDrive.setPower(power);
-                else
-                    robot.frontLeftDrive.setPower(-power/5);
-                if (color_right.blue()<15)
-                    robot.frontLeftDrive.setPower(power);
-                else
-                    robot.frontLeftDrive.setPower(-power/5);
-                if ((color_left.blue()>15)&&(color_right.blue()>15))
-                    done = true;
-            }
-        }
-        DrivePowerAll(0);
-        dashboard.displayPrintf(3, "Color right red: " + color_right.red());
-        dashboard.displayPrintf(4, "Color right blue: " + color_right.blue());
-        dashboard.displayPrintf(5, "Color left red: " + color_left.red());
-        dashboard.displayPrintf(6, "Color left blue: " + color_left.blue());
-        sleep(500);
-    }
 
     void DriveRobotTurn (double power, double degree)
     {
@@ -431,6 +344,57 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
         robot.backRightDrive.setPower(power);
     }
 
+    /**
+     * SlavedLift
+     * Positive swings back
+     * @param power Power level
+     * @param degrees Degrees of rotation
+     */
+    void SlavedLift (double power, double degrees)
+    {
+        int position = (int)(degrees*LIFTONATOR_CONSTANT);
+        robot.liftinator1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.liftinator2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.liftinator1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        robot.liftinator2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        robot.liftinator1.setPower(power);
+        robot.liftinator2.setPower(power);
+        robot.liftinator1.setTargetPosition(position);
+        robot.liftinator2.setTargetPosition(position);
+        for (int i=0; i < 5; i++) {    // Repeat check 5 times, sleeping 10ms between,
+            // as isBusy can be a bit unreliable
+            while (robot.liftinator1.isBusy() && robot.liftinator2.isBusy()) {
+                dashboard.displayPrintf(10, "The ENEMY gates are down!");
+            }
+            sleep(10);
+        }
+        robot.liftinator1.setPower(0);
+        robot.liftinator2.setPower(0);
+    }
+
+    /**
+     * ExtendoArm_ACTIVATE ACTIVATES the ExtendoArm
+     * Positive extends
+     * @param power
+     * @param inches
+     */
+    void ExtendoArm5000_ACTIVATE (double power, double inches)
+    {
+        int position = (int)(-inches*EXTENDOARM_CONSTANT);
+        robot.extendoArm5000.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.extendoArm5000.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        robot.extendoArm5000.setPower(power);
+        robot.extendoArm5000.setTargetPosition(position);
+        for (int i=0; i < 5; i++) {    // Repeat check 5 times, sleeping 10ms between,
+            // as isBusy can be a bit unreliable
+            while (robot.extendoArm5000.isBusy()) {
+                dashboard.displayPrintf(10, "Don't fire at the ENEMY until you see the whites of their eyes!");
+            }
+            sleep(10);
+        }
+        robot.extendoArm5000.setPower(0);
+    }
+
 
     // MENU ----------------------------------------------------------------------------------------
     @Override
@@ -447,44 +411,39 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
 
     private void doMenus() {
         FtcChoiceMenu<RunMode> modeMenu = new FtcChoiceMenu<>("Run Mode", null, this);
-        FtcChoiceMenu<Alliance> allianceMenu = new FtcChoiceMenu<>("Alliance:", modeMenu, this);
-        FtcValueMenu delayMenu = new FtcValueMenu("Delay:", allianceMenu, this, 0, 20000, 1000, 0, "%.0f msec");
+        FtcValueMenu delayMenu = new FtcValueMenu("Delay:", modeMenu, this, 0, 20000, 1000, 0, "%.0f msec");
         FtcChoiceMenu<StartPosition> startPositionMenu = new FtcChoiceMenu<>("Start Position:", delayMenu, this);
-        FtcChoiceMenu<CorrectJewel> jewelMenu = new FtcChoiceMenu<>("Correct Jewel", startPositionMenu, this);
-        FtcChoiceMenu<GetExtraGlyph> extraGlyphMenu = new FtcChoiceMenu<>("Get extra glyph:", jewelMenu, this);
+        FtcChoiceMenu<Sampling> samplingMenu = new FtcChoiceMenu<>("Number of Samples:", startPositionMenu, this);
+        FtcChoiceMenu<Depot> depotMenu = new FtcChoiceMenu<>("Go for Depot:", samplingMenu, this);
+        FtcChoiceMenu<Crater> craterMenu = new FtcChoiceMenu<>("Crater:", depotMenu, this);
 
-        modeMenu.addChoice("Auto", RunMode.RUNMODE_AUTO, true, allianceMenu);
-        modeMenu.addChoice("Debug", RunMode.RUNMODE_DEBUG, false, allianceMenu);
-
-        allianceMenu.addChoice("Red", Alliance.ALLIANCE_RED, true, delayMenu);
-        allianceMenu.addChoice("Blue", Alliance.ALLIANCE_BLUE, false, delayMenu);
+        modeMenu.addChoice("Auto", RunMode.RUNMODE_AUTO, true, delayMenu);
+        modeMenu.addChoice("Debug", RunMode.RUNMODE_DEBUG, false, delayMenu);
 
         delayMenu.setChildMenu(startPositionMenu);
 
-        startPositionMenu.addChoice("1", StartPosition.STARTPOSITION1, true, extraGlyphMenu);
-        startPositionMenu.addChoice("2", StartPosition.STARTPOSITION2, false, extraGlyphMenu);
+        startPositionMenu.addChoice("1", StartPosition.SILVER, true, samplingMenu);
+        startPositionMenu.addChoice("2", StartPosition.GOLD, false, samplingMenu);
 
-        jewelMenu.addChoice("Yes", CorrectJewel.YES, true, jewelMenu);
-        jewelMenu.addChoice("No", CorrectJewel.NO, false, jewelMenu);
+        samplingMenu.addChoice("0", Sampling.ZERO, false, depotMenu);
+        samplingMenu.addChoice("1", Sampling.ONE, true, depotMenu);
+        samplingMenu.addChoice("2", Sampling.TWO, false, depotMenu);
 
-        extraGlyphMenu.addChoice("Never", GetExtraGlyph.NEVER, true, null);
-        extraGlyphMenu.addChoice("If near", GetExtraGlyph.IF_NEAR, true, null);
-        extraGlyphMenu.addChoice("If near or center", GetExtraGlyph.IF_NEAR_OR_CENTER, true, null);
-        extraGlyphMenu.addChoice("Always", GetExtraGlyph.ALWAYS, true, null);
+        depotMenu.addChoice("Yes", Depot.YES, true, craterMenu);
+        depotMenu.addChoice("No", Depot.NO, false, craterMenu);
+
+        craterMenu.addChoice("Near", Crater.NEAR, true);
+        craterMenu.addChoice("Far", Crater.FAR, false);
 
         FtcMenu.walkMenuTree(modeMenu, this);
         runmode = modeMenu.getCurrentChoiceObject();
-        alliance = allianceMenu.getCurrentChoiceObject();
         delay = (int) delayMenu.getCurrentValue();
         startposition = startPositionMenu.getCurrentChoiceObject();
-        correctjewel = jewelMenu.getCurrentChoiceObject();
-        getExtraGlyph = extraGlyphMenu.getCurrentChoiceObject();
+        crater = craterMenu.getCurrentChoiceObject();
 
         dashboard.displayPrintf(9, "Mode: %s (%s)", modeMenu.getCurrentChoiceText(), runmode.toString());
-        dashboard.displayPrintf(10, "Alliance: %s (%s)", allianceMenu.getCurrentChoiceText(), alliance.toString());
         dashboard.displayPrintf(11, "Delay = %d msec", delay);
         dashboard.displayPrintf(12, "Start position: %s (%s)", startPositionMenu.getCurrentChoiceText(), startposition.toString());
-        dashboard.displayPrintf(13, "Get extra glyph: %s (%s)", extraGlyphMenu.getCurrentChoiceText(), getExtraGlyph.toString());
     }
     // END MENU ------------------------------------------------------------------------------------
 }
