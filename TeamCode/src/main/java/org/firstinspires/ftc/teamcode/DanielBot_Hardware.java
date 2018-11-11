@@ -22,6 +22,10 @@ public class DanielBot_Hardware
     public DcMotor liftinator1        = null;
     public DcMotor liftinator2        = null;
     public DcMotor collectOtron       = null;
+//    public CRServo blahCR             = null;
+//    public Servo   blah               = null;
+    public Servo   extensionLock      = null;
+    public Servo   pivotLock          = null;
 
     /* Local OpMode members. */
     HardwareMap    hwMap              = null;
@@ -84,7 +88,7 @@ public class DanielBot_Hardware
         collectOtron.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
 
-        // Set all motors to run with encoders
+        // Set almost all motors to run with encoders
         frontLeftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         backLeftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         frontRightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -93,9 +97,21 @@ public class DanielBot_Hardware
         extendoArm5000.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         liftinator1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         liftinator2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        collectOtron.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        // This has no encoder
+        collectOtron.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
 
+        // Define and initialize all installed servos
+        extensionLock = hwMap.servo.get("extension_lock");
+        pivotLock     = hwMap.servo.get("pivot_lock");
+
+        extensionLock.setPosition(1);
+        pivotLock.setPosition(0);
+
+//        blahCR = hwMap.crservo.get("relicLift");
+//        blahCR.setPower(0);
+//        blahCR.setDirection(CRServo.Direction.FORWARD);
     }
 }
 

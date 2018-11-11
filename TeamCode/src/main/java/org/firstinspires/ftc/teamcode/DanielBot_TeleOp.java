@@ -55,9 +55,15 @@ public class DanielBot_TeleOp extends OpMode {
     double  y = 0;
     double  z = 0;
 
-    boolean collectOtronACTIVE = false;
-    boolean collectOtronSWITCHING = false;
-    boolean collctOtronREVERSE = false;
+    boolean collectOtronACTIVE     = false;
+    boolean collectOtronSWITCHING  = false;
+    boolean collectOtronREVERSE    = false;
+
+    boolean pivotLockSWITCHING     = false;
+    boolean pivotLockENGAGED       = false;
+
+    boolean extensionLockSWITCHING = false;
+    boolean extensionLockENGAGED   = false;
 
     // Code to run once when the driver hits INIT
     @Override
@@ -138,22 +144,25 @@ public class DanielBot_TeleOp extends OpMode {
         }
 
         if (gamepad1.y) {
+            //robot.pivotLock.setPosition(1);
             robot.liftinator1.setPower(1);
             robot.liftinator2.setPower(1);
         }
         else if (gamepad1.a) {
+            //robot.pivotLock.setPosition(1);
             robot.liftinator1.setPower(-1);
             robot.liftinator2.setPower(-1);
         }
         else {
+            //robot.pivotLock.setPosition(0);
             robot.liftinator1.setPower(0);
             robot.liftinator2.setPower(0);
         }
 
-        if (gamepad1.x)
-            robot.extendoArm5000.setPower(1);
-        else if (gamepad1.b)
-            robot.extendoArm5000.setPower(-1);
+        if (gamepad1.right_trigger > 0)
+            robot.extendoArm5000.setPower(gamepad1.right_trigger);
+        else if (gamepad1.left_trigger > 0)
+            robot.extendoArm5000.setPower(-gamepad1.left_trigger);
         else
             robot.extendoArm5000.setPower(0);
 
@@ -168,16 +177,46 @@ public class DanielBot_TeleOp extends OpMode {
         }
 
         if (gamepad1.right_bumper)
-            collctOtronREVERSE = true;
+            collectOtronREVERSE = true;
         else if (gamepad1.left_bumper)
-            collctOtronREVERSE = false;
+            collectOtronREVERSE = false;
 
-        if (collectOtronACTIVE && !collctOtronREVERSE)
+        if (collectOtronACTIVE && !collectOtronREVERSE)
             robot.collectOtron.setPower(1);
         else if (collectOtronACTIVE)
             robot.collectOtron.setPower(-1);
         else
             robot.collectOtron.setPower(0);
+
+        // Pivot lock
+        if (gamepad1.x)
+            pivotLockSWITCHING = true;
+        else if (pivotLockSWITCHING) {
+            pivotLockSWITCHING = false;
+            if (pivotLockENGAGED) {
+                pivotLockENGAGED = false;
+                robot.pivotLock.setPosition(0);
+            }
+            else {
+                pivotLockENGAGED = true;
+                robot.pivotLock.setPosition(1);
+            }
+        }
+
+        // Extension lock
+        if (gamepad1.b)
+            extensionLockSWITCHING = true;
+        else if (extensionLockSWITCHING) {
+            extensionLockSWITCHING = false;
+            if (extensionLockENGAGED) {
+                extensionLockENGAGED = false;
+                robot.extensionLock.setPosition(1);
+            }
+            else {
+                extensionLockENGAGED = true;
+                robot.extensionLock.setPosition(0);
+            }
+        }
 
     }
 
