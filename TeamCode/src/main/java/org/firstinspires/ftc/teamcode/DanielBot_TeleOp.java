@@ -214,7 +214,7 @@ public class DanielBot_TeleOp extends OpMode {
             }
             else {
                 extensionLockENGAGED = true;
-                robot.extensionLock.setPosition(0);
+                robot.extensionLock.setPosition(.2);
             }
         }
 
