@@ -33,12 +33,18 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
+import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
+import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 
 import ftclib.FtcChoiceMenu;
 import ftclib.FtcMenu;
 import ftclib.FtcValueMenu;
 import hallib.HalDashboard;
+
+import java.lang.Math;
+import java.util.List;
 
 @Autonomous(name="Daniel Autonomous", group ="DanielBot")
 public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuButtons {
@@ -50,10 +56,19 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
         RUNMODE_AUTO,
         RUNMODE_DEBUG
     }
+    public enum Lift {
+        YES,
+        NO
+    }
     public enum Sampling {
         ZERO,
         ONE,
         TWO
+    }
+    public enum Gold {
+        LEFT,
+        CENTER,
+        RIGHT
     }
     public enum Crater {
         NEAR,
@@ -69,7 +84,9 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
     RunMode        runmode       = RunMode.RUNMODE_AUTO;
     int            delay         = 0;
     StartPosition  startposition = StartPosition.SILVER;
+    Lift           hanging       = Lift.YES;
     Crater         crater        = Crater.NEAR;
+    Gold           gold          = Gold.CENTER;
     Depot          depot         = Depot.YES;
     Sampling       sampling      = Sampling.ZERO;
 
@@ -85,45 +102,64 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
 
     static final double  LIFTONATOR_CONSTANT        = 280/9; //constant that converts liftonator to degrees (1120*10/360)
     static final double  EXTENDOARM_CONSTANT        = 4480/(13 * 3.14159265); //constant that converts ExtendoArm to inches 1120/(3.25 * 3.14159265)
+
+    private static final String TFOD_MODEL_ASSET = "RoverRuckus.tflite";
+    private static final String LABEL_GOLD_MINERAL = "Gold Mineral";
+    private static final String LABEL_SILVER_MINERAL = "Silver Mineral";
+    private static final String VUFORIA_KEY = "Aez7J07/////AAABmS8UUfYgtke9gtnv8lpOtUwWoahEf1DgQVHSXzYz9B1RjnN9agKHZOutrQmzOMd57S7KpZKOt6yvLF4rGqzWR4Re/EhtUIe1+MD9DYlEkHHX3bio1F0kblG0BgzIAxmM+u+2L10gHO4pyuUnPohg7/T5mY912NuZGocuhq65i20+xV1b3bjStwuZaKY14lXvEklvO8ZcFvR26928fxmJIVWtRqashdFZ5nxm1w/sqJ9eWJQv3mLZt7AVrclS5NwPxzSwlX6+8IK8dWIOOJuZx0mKVlQMNoAEXioCuIuuFwAMBtm+NMkjXTxtfiShYXnfD7e1pAUsMgksQBGl1cCqcpLr8dD1msx9nOlI6fsfMY9e";
+
     /**
-     * Define the variable we will use to store our instance of the Vuforia
+     * {@link #vuforia} is the variable we will use to store our instance of the Vuforia
      * localization engine.
      */
-    VuforiaLocalizer vuforia;
+    private VuforiaLocalizer vuforia;
 
     /**
-     * Color sensor declaration
+     * {@link #tfod} is the variable we will use to store our instance of the Tensor Flow Object
+     * Detection engine.
      */
-
+    private TFObjectDetector tfod;
     @Override public void runOpMode() {
         // Initialize the hardware -----------------------------------------------------------------
         robot.init(hardwareMap);
         // Initialize dashboard --------------------------------------------------------------------
         dashboard = HalDashboard.createInstance(telemetry);
 
-        // Initialize Vuforia ----------------------------------------------------------------------
-        /*
-         * To start up Vuforia, tell it the view that we wish to use for camera monitor
-         * (on the RC phone); If no camera monitor is desired, use the parameterless
-         * constructor instead (commented out below).
-         */
-        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId",
-                                                    "id", hardwareMap.appContext.getPackageName());
-        VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
-
-        // Or, don't activate the Camera Monitor view, to save power
-        //VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
-
-        // Our key
-        parameters.vuforiaLicenseKey = "Aez7J07/////AAABmS8UUfYgtke9gtnv8lpOtUwWoahEf1DgQVHSXzYz9B1RjnN9agKHZOutrQmzOMd57S7KpZKOt6yvLF4rGqzWR4Re/EhtUIe1+MD9DYlEkHHX3bio1F0kblG0BgzIAxmM+u+2L10gHO4pyuUnPohg7/T5mY912NuZGocuhq65i20+xV1b3bjStwuZaKY14lXvEklvO8ZcFvR26928fxmJIVWtRqashdFZ5nxm1w/sqJ9eWJQv3mLZt7AVrclS5NwPxzSwlX6+8IK8dWIOOJuZx0mKVlQMNoAEXioCuIuuFwAMBtm+NMkjXTxtfiShYXnfD7e1pAUsMgksQBGl1cCqcpLr8dD1msx9nOlI6fsfMY9e";
-
-        /*
-         * We also indicate which camera on the RC that we wish to use.
-         * Here we chose the back (HiRes) camera (for greater range), but
-         * for a competition robot, the front camera might be more convenient.
-         */
-        parameters.cameraDirection = VuforiaLocalizer.CameraDirection.BACK;
-        this.vuforia = ClassFactory.createVuforiaLocalizer(parameters);
+//        // Initialize Vuforia ----------------------------------------------------------------------
+//        /*
+//         * To start up Vuforia, tell it the view that we wish to use for camera monitor
+//         * (on the RC phone); If no camera monitor is desired, use the parameterless
+//         * constructor instead (commented out below).
+//         */
+//        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId",
+//                                                    "id", hardwareMap.appContext.getPackageName());
+//        VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
+//
+//        // Or, don't activate the Camera Monitor view, to save power
+//        //VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
+//
+//        // Our key
+//        parameters.vuforiaLicenseKey = "Aez7J07/////AAABmS8UUfYgtke9gtnv8lpOtUwWoahEf1DgQVHSXzYz9B1RjnN9agKHZOutrQmzOMd57S7KpZKOt6yvLF4rGqzWR4Re/EhtUIe1+MD9DYlEkHHX3bio1F0kblG0BgzIAxmM+u+2L10gHO4pyuUnPohg7/T5mY912NuZGocuhq65i20+xV1b3bjStwuZaKY14lXvEklvO8ZcFvR26928fxmJIVWtRqashdFZ5nxm1w/sqJ9eWJQv3mLZt7AVrclS5NwPxzSwlX6+8IK8dWIOOJuZx0mKVlQMNoAEXioCuIuuFwAMBtm+NMkjXTxtfiShYXnfD7e1pAUsMgksQBGl1cCqcpLr8dD1msx9nOlI6fsfMY9e";
+//
+//        /*
+//         * We also indicate which camera on the RC that we wish to use.
+//         * Here we chose the back (HiRes) camera (for greater range), but
+//         * for a competition robot, the front camera might be more convenient.
+//         */
+//        parameters.cameraDirection = VuforiaLocalizer.CameraDirection.BACK;
+//        this.vuforia = ClassFactory.createVuforiaLocalizer(parameters);
+//
+//        initVuforia();
+//
+//        if (ClassFactory.getInstance().canCreateTFObjectDetector()) {
+//            initTfod();
+//        } else {
+//            telemetry.addData("Sorry!", "This device is not compatible with TFOD");
+//        }
+//
+//        /** Wait for the game to begin */
+//        telemetry.addData(">", "Press Play to start tracking");
+//        telemetry.update();
 
         // Run though the menu ---------------------------------------------------------------------
         doMenus();
@@ -141,20 +177,138 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
 
 
         if (DoTask("Init", runmode)) {
+            if (hanging == Lift.YES) {
+
+
+                /** Activate Tensor Flow Object Detection. */
+//                if (tfod != null) {
+//                    tfod.activate();
+//                }
+//                if (tfod != null) {
+//                    // getUpdatedRecognitions() will return null if no new information is available since
+//                    // the last time that call was made.
+//                    List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
+//                    if (updatedRecognitions != null) {
+//                        telemetry.addData("# Object Detected", updatedRecognitions.size());
+//                        if (updatedRecognitions.size() == 3) {
+//                            int goldMineralX = -1;
+//                            int silverMineral1X = -1;
+//                            int silverMineral2X = -1;
+//                            for (Recognition recognition : updatedRecognitions) {
+//                                if (recognition.getLabel().equals(LABEL_GOLD_MINERAL)) {
+//                                    goldMineralX = (int) recognition.getLeft();
+//                                } else if (silverMineral1X == -1) {
+//                                    silverMineral1X = (int) recognition.getLeft();
+//                                } else {
+//                                    silverMineral2X = (int) recognition.getLeft();
+//                                }
+//                            }
+//                            if (goldMineralX != -1 && silverMineral1X != -1 && silverMineral2X != -1) {
+//                                if (goldMineralX < silverMineral1X && goldMineralX < silverMineral2X) {
+//                                    gold = Gold.LEFT;
+//                                } else if (goldMineralX > silverMineral1X && goldMineralX > silverMineral2X) {
+//                                    gold = Gold.RIGHT;
+//                                } else {
+//                                    gold = Gold.CENTER;
+//                                }
+//                            }
+//                        }
+//                        telemetry.update();
+//                    }
+//                }
+//
+//
+//                if (tfod != null) {
+//                    tfod.shutdown();
+//                }
+//            }
             robot.pivotLock.setPosition(0);
+            SlavedLift(1, -5);
             sleep(100);
-            SlavedLift(1, 90);
+            SlavedLift(.5, 90);
             robot.extensionLock.setPosition(1);
             sleep(100);
-            ExtendoArm5000_ACTIVATE(.5, 6);
+            ExtendoArm5000_ACTIVATE(.5, 10);
+            SlavedLift(1, -90);
+            sleep(500);
+            }
+            else {
+                double random = Math.random();
+                if (random < (1 / 3))
+                    gold = Gold.LEFT;
+                else if (random < (2 / 3))
+                    gold = Gold.CENTER;
+                else
+                    gold = Gold.RIGHT;
+            }
         }
 
         if (DoTask("Mineral Sampling", runmode)) {
-
+            DriveRobotPosition(.5, 3);
+            if (sampling == Sampling.ONE || sampling == Sampling.TWO){
+                if (gold != Gold.CENTER) {
+                    if (gold == Gold.LEFT)
+                        DriveRobotTurn(.7, -35);
+                    else if (gold == Gold.RIGHT)
+                        DriveRobotTurn(.7, 35);
+                    DriveRobotPosition(1, 24);
+                    sleep(500);
+                    DriveRobotPosition(1, -24);
+                    if (gold == Gold.LEFT)
+                        DriveRobotTurn(.7, 35);
+                    else if (gold == Gold.RIGHT)
+                        DriveRobotTurn(.7, -35);
+                } else {
+                    DriveRobotPosition(1, 20);
+                    sleep(500);
+                    if (!(depot == Depot.NO && (sampling == Sampling.ONE || sampling == Sampling.ZERO)
+                            && crater == Crater.NEAR))
+                        DriveRobotPosition(1, -20);
+                }
+            }
+            else
+                DriveRobotPosition(1, 20);
         }
 
         if (DoTask("Drive my Car", runmode)) {
-
+            if (depot == Depot.NO && (sampling == Sampling.ONE || sampling == Sampling.ZERO)
+                    && crater == Crater.NEAR) {
+                DriveRobotPosition(1, 26);
+            }
+            else if (depot == Depot.YES) {
+                if (crater == Crater.NEAR) {
+                    if (startposition == StartPosition.GOLD) {
+                        DriveRobotTurn(1, 90);
+                        sleep(500);
+                        DriveRobotPosition(1, 30);
+                        sleep(500);
+                        DriveRobotTurn(1, 135);
+                        sleep(500);
+                        DriveSidewaysTime(2, -1);
+                        DriveRobothug(1, 30, false);
+                        robot.collectOtron.setPower(-1);
+                        sleep(1000);
+                        robot.collectOtron.setPower(0);
+                        if (sampling == Sampling.ONE)
+                            DriveRobothug(1, -60, false);
+                    }
+                    else {
+                        DriveRobotTurn(1, -90);
+                        sleep(500);
+                        DriveRobotPosition(1, 30);
+                        sleep(500);
+                        DriveRobotTurn(1, -135);
+                        sleep(500);
+                        DriveSidewaysTime(2, 1);
+                        DriveRobothug(1, 30, true);
+                        robot.collectOtron.setPower(-1);
+                        sleep(1000);
+                        robot.collectOtron.setPower(0);
+                        if (sampling == Sampling.ONE)
+                            DriveRobothug(1, -60, true);
+                    }
+                }
+            }
         }
 
         // drive
@@ -345,6 +499,95 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
     }
 
     /**
+     * DriveSidewaysTime makes the robot drive sideways for the specified time and power.
+     * @param time How long to drive in seconds
+     * @param power The power to use while driving,
+     *              positive values go right and negative values go left
+     */
+    void DriveSidewaysTime (int time, double power)
+    {
+        robot.frontLeftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.frontRightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.backLeftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.backRightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        if (power > 0) // Drive left
+        {
+            robot.frontLeftDrive.setPower(-power);
+            robot.backLeftDrive.setPower(power);
+            robot.backRightDrive.setPower(-power);
+            robot.frontRightDrive.setPower(power);
+        }
+        else // Drive right
+        {
+            robot.frontRightDrive.setPower(power);
+            robot.backRightDrive.setPower(-power);
+            robot.backLeftDrive.setPower(power);
+            robot.frontLeftDrive.setPower(-power);
+        }
+        // Continue driving for the specified amount of time, then stop
+        sleep(time*1000);
+        DrivePowerAll(0);
+    }
+
+    /**
+     * DriveRobotHug is used to make the robot drive hugging a wall.
+     * The robot will move mostly straight and slightly to the side,
+     * so it will stay against the wall.
+     * @param power Power to use while driving
+     * @param inches How many inches to drive
+     * @param hugLeft Whether to hug left or right
+     */
+    void DriveRobothug (double power, int inches, boolean hugLeft)
+    {
+        double position = inches*COUNTS_PER_INCH;
+
+        robot.frontLeftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.frontRightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.backRightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.backLeftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        robot.frontLeftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        robot.frontRightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        robot.backRightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        robot.backLeftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        if ((!hugLeft && inches > 0) || (hugLeft && inches < 0)) {
+            robot.frontLeftDrive.setPower(power*.9);
+            robot.frontRightDrive.setPower(power);
+            robot.backRightDrive.setPower(power*.9);
+            robot.backLeftDrive.setPower(power);
+        }
+        else if ((!hugLeft && inches < 0) || (hugLeft && inches > 0))
+        {
+            robot.frontLeftDrive.setPower(power);
+            robot.frontRightDrive.setPower(power*.9);
+            robot.backRightDrive.setPower(power);
+            robot.backLeftDrive.setPower(power*.9);
+        }
+
+        robot.frontLeftDrive.setTargetPosition((int)position);
+        robot.frontRightDrive.setTargetPosition((int)position);
+        robot.backRightDrive.setTargetPosition((int)position);
+        robot.backLeftDrive.setTargetPosition((int)position);
+
+        for (int i=0; i < 5; i++) {    // Repeat check 5 times, sleeping 10ms between,
+            // as isBusy can be a bit unreliable
+            while (robot.frontLeftDrive.isBusy() && robot.frontRightDrive.isBusy() && robot.backLeftDrive.isBusy()
+                    && robot.backRightDrive.isBusy()) {
+                dashboard.displayPrintf(3, "Left front encoder: %d", robot.frontLeftDrive.getCurrentPosition());
+                dashboard.displayPrintf(4, "Right front encoder: %d", robot.frontRightDrive.getCurrentPosition());
+                dashboard.displayPrintf(5, "Left back encoder: %d", robot.frontLeftDrive.getCurrentPosition());
+                dashboard.displayPrintf(6, "Right back encoder %d", robot.backRightDrive.getCurrentPosition());
+            }
+            sleep(10);
+        }
+
+        DrivePowerAll(0);
+
+    }
+
+    /**
      * SlavedLift
      * Positive swings back
      * @param power Power level
@@ -395,6 +638,35 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
         robot.extendoArm5000.setPower(0);
     }
 
+    /**
+     * Initialize the Vuforia localization engine.
+     */
+    private void initVuforia() {
+        /*
+         * Configure Vuforia by creating a Parameter object, and passing it to the Vuforia engine.
+         */
+        VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
+
+        parameters.vuforiaLicenseKey = VUFORIA_KEY;
+        parameters.cameraName = hardwareMap.get(WebcamName.class, "Webcam 1");
+
+        //  Instantiate the Vuforia engine
+        vuforia = ClassFactory.getInstance().createVuforia(parameters);
+
+        // Loading trackables is not necessary for the Tensor Flow Object Detection engine.
+    }
+
+    /**
+     * Initialize the Tensor Flow Object Detection engine.
+     */
+    private void initTfod() {
+        int tfodMonitorViewId = hardwareMap.appContext.getResources().getIdentifier(
+                "tfodMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        TFObjectDetector.Parameters tfodParameters = new TFObjectDetector.Parameters(tfodMonitorViewId);
+        tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia);
+        tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABEL_GOLD_MINERAL, LABEL_SILVER_MINERAL);
+    }
+
 
     // MENU ----------------------------------------------------------------------------------------
     @Override
@@ -413,7 +685,8 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
         FtcChoiceMenu<RunMode> modeMenu = new FtcChoiceMenu<>("Run Mode", null, this);
         FtcValueMenu delayMenu = new FtcValueMenu("Delay:", modeMenu, this, 0, 20000, 1000, 0, "%.0f msec");
         FtcChoiceMenu<StartPosition> startPositionMenu = new FtcChoiceMenu<>("Start Position:", delayMenu, this);
-        FtcChoiceMenu<Sampling> samplingMenu = new FtcChoiceMenu<>("Number of Samples:", startPositionMenu, this);
+        FtcChoiceMenu<Lift> liftMenu = new FtcChoiceMenu<>("Hanging:", startPositionMenu, this);
+        FtcChoiceMenu<Sampling> samplingMenu = new FtcChoiceMenu<>("Number of Samples:", liftMenu, this);
         FtcChoiceMenu<Depot> depotMenu = new FtcChoiceMenu<>("Go for Depot:", samplingMenu, this);
         FtcChoiceMenu<Crater> craterMenu = new FtcChoiceMenu<>("Crater:", depotMenu, this);
 
@@ -422,8 +695,11 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
 
         delayMenu.setChildMenu(startPositionMenu);
 
-        startPositionMenu.addChoice("1", StartPosition.SILVER, true, samplingMenu);
-        startPositionMenu.addChoice("2", StartPosition.GOLD, false, samplingMenu);
+        startPositionMenu.addChoice("Silver Side", StartPosition.SILVER, true, liftMenu);
+        startPositionMenu.addChoice("Gold Side", StartPosition.GOLD, false, liftMenu);
+
+        liftMenu.addChoice("Yes", Lift.YES, true, samplingMenu);
+        liftMenu.addChoice("NO", Lift.NO, false, samplingMenu);
 
         samplingMenu.addChoice("0", Sampling.ZERO, false, depotMenu);
         samplingMenu.addChoice("1", Sampling.ONE, true, depotMenu);
@@ -438,6 +714,7 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
         FtcMenu.walkMenuTree(modeMenu, this);
         runmode = modeMenu.getCurrentChoiceObject();
         delay = (int) delayMenu.getCurrentValue();
+        hanging = liftMenu.getCurrentChoiceObject();
         startposition = startPositionMenu.getCurrentChoiceObject();
         crater = craterMenu.getCurrentChoiceObject();
 
