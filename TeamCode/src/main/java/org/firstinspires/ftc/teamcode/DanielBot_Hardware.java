@@ -107,7 +107,7 @@ public class DanielBot_Hardware
         pivotLock     = hwMap.servo.get("pivot_lock");
 
         extensionLock.setPosition(1);
-        pivotLock.setPosition(0);
+        pivotLock.setPosition(.5);
 
 //        blahCR = hwMap.crservo.get("relicLift");
 //        blahCR.setPower(0);

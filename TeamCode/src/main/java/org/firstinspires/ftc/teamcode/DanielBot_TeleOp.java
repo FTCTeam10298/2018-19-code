@@ -85,38 +85,41 @@ public class DanielBot_TeleOp extends OpMode {
         // Send telemetry message to signify robot running
         telemetry.addData("Say", "STK is the gr8est without deb8");
 
-        if (gamepad2.left_stick_y > .1 || gamepad2.left_stick_y < -.1) {
-            DriveSideways(gamepad2.left_stick_y / 2);
-        } else if (gamepad2.left_stick_x < -.1 || gamepad2.left_stick_x > .1) {
-            DrivePowerAll(-gamepad2.left_stick_x / 4);
-        } else if (gamepad2.right_stick_x > .1 || gamepad2.right_stick_x < -.1) {
-            DriveRobotTurn(-gamepad2.right_stick_x / 4);
-        } else if (gamepad1.dpad_up) {
+        if (gamepad1.dpad_up || gamepad2.dpad_up) {
             DrivePowerAll(.5);
-        } else if (gamepad1.dpad_down) {
+        } else if (gamepad1.dpad_down || gamepad2.dpad_down) {
             DrivePowerAll(-.5);
-        } else if (gamepad1.dpad_left) {
+        } else if (gamepad1.dpad_left || gamepad2.dpad_left) {
             DriveSideways(.5);
-        } else if (gamepad1.dpad_right) {
+        } else if (gamepad1.dpad_right || gamepad2.dpad_right) {
             DriveSideways(-.5);
         }
         // Drone drive
         else {
             if (gamepad1.left_stick_y > .1 || gamepad1.left_stick_y < -.1) {
                 y = gamepad1.left_stick_y;
-            } else {
+            } else if (gamepad2.left_stick_y > .1 || gamepad2.left_stick_y < -.1) {
+                y = gamepad2.left_stick_y;
+            }
+            else {
                 y = 0;
             }
 
             if (gamepad1.left_stick_x > .1 || gamepad1.left_stick_x < -.1) {
                 x = gamepad1.left_stick_x;
-            } else {
+            } else if (gamepad2.left_stick_x > .1 || gamepad2.left_stick_x < -.1) {
+                x = gamepad2.left_stick_x;
+            }
+            else {
                 x = 0;
             }
 
             if (gamepad1.right_stick_x > .1 || gamepad1.right_stick_x < -.1) {
                 z = -gamepad1.right_stick_x / 2;
-            } else {
+            } else if (gamepad2.right_stick_x > .1 || gamepad2.right_stick_x < -.1) {
+                z = -gamepad2.right_stick_x / 2;
+            }
+            else {
                 z = 0;
             }
 
@@ -143,12 +146,12 @@ public class DanielBot_TeleOp extends OpMode {
             robot.backRightDrive.setPower(-1 * Range.clip(((y - x - z) / maxvalue), -1.0, 1.0));
         }
 
-        if (gamepad1.y) {
+        if (gamepad1.y || gamepad2.y) {
             //robot.pivotLock.setPosition(1);
             robot.liftinator1.setPower(1);
             robot.liftinator2.setPower(1);
         }
-        else if (gamepad1.a) {
+        else if (gamepad1.a || gamepad2.a) {
             //robot.pivotLock.setPosition(1);
             robot.liftinator1.setPower(-1);
             robot.liftinator2.setPower(-1);
@@ -161,12 +164,16 @@ public class DanielBot_TeleOp extends OpMode {
 
         if (gamepad1.right_trigger > 0)
             robot.extendoArm5000.setPower(gamepad1.right_trigger);
+        else if (gamepad2.right_trigger > 0)
+            robot.extendoArm5000.setPower(gamepad2.right_trigger);
         else if (gamepad1.left_trigger > 0)
             robot.extendoArm5000.setPower(-gamepad1.left_trigger);
+        else if (gamepad2.left_trigger > 0)
+            robot.extendoArm5000.setPower(-gamepad2.left_trigger);
         else
             robot.extendoArm5000.setPower(0);
 
-        if (gamepad1.right_bumper || gamepad1.left_bumper)
+        if (gamepad1.right_bumper || gamepad1.left_bumper || gamepad2.right_bumper || gamepad2.left_bumper)
             collectOtronSWITCHING = true;
         else if (collectOtronSWITCHING) {
             collectOtronSWITCHING = false;
@@ -176,26 +183,33 @@ public class DanielBot_TeleOp extends OpMode {
                 collectOtronACTIVE = true;
         }
 
-        if (gamepad1.right_bumper)
+        if (gamepad1.right_bumper || gamepad2.right_bumper)
             collectOtronREVERSE = true;
-        else if (gamepad1.left_bumper)
+        else if (gamepad1.left_bumper || gamepad2.left_bumper)
             collectOtronREVERSE = false;
 
-        if (collectOtronACTIVE && !collectOtronREVERSE)
-            robot.collectOtron.setPower(1);
+        if (collectOtronACTIVE && !collectOtronREVERSE) {
+            if (gamepad1.start || gamepad2.start) {
+                robot.collectOtron.setPower(1);
+            }
+            else
+            {
+                robot.collectOtron.setPower(.6);
+            }
+        }
         else if (collectOtronACTIVE)
             robot.collectOtron.setPower(-1);
         else
             robot.collectOtron.setPower(0);
 
         // Pivot lock
-        if (gamepad1.x)
+        if (gamepad1.x || gamepad2.x)
             pivotLockSWITCHING = true;
         else if (pivotLockSWITCHING) {
             pivotLockSWITCHING = false;
             if (pivotLockENGAGED) {
                 pivotLockENGAGED = false;
-                robot.pivotLock.setPosition(0);
+                robot.pivotLock.setPosition(.5);
             }
             else {
                 pivotLockENGAGED = true;
@@ -204,7 +218,7 @@ public class DanielBot_TeleOp extends OpMode {
         }
 
         // Extension lock
-        if (gamepad1.b)
+        if (gamepad1.b || gamepad2.b)
             extensionLockSWITCHING = true;
         else if (extensionLockSWITCHING) {
             extensionLockSWITCHING = false;

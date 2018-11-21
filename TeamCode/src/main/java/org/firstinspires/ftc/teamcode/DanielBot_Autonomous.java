@@ -46,34 +46,40 @@ import hallib.HalDashboard;
 import java.lang.Math;
 import java.util.List;
 
-@Autonomous(name="Daniel Autonomous", group ="DanielBot")
+@Autonomous(name="DanielBot Autonomous", group ="DanielBot")
 public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuButtons {
     public enum StartPosition {
         SILVER,
         GOLD
     }
+
     public enum RunMode {
         RUNMODE_AUTO,
         RUNMODE_DEBUG
     }
+
     public enum Lift {
         YES,
         NO
     }
+
     public enum Sampling {
         ZERO,
         ONE,
         TWO
     }
+
     public enum Gold {
         LEFT,
         CENTER,
         RIGHT
     }
+
     public enum Crater {
         NEAR,
         FAR
     }
+
     public enum Depot {
         YES,
         NO
@@ -81,27 +87,27 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
 
 
     // Menu option variables
-    RunMode        runmode       = RunMode.RUNMODE_AUTO;
-    int            delay         = 0;
-    StartPosition  startposition = StartPosition.SILVER;
-    Lift           hanging       = Lift.YES;
-    Crater         crater        = Crater.NEAR;
-    Gold           gold          = Gold.CENTER;
-    Depot          depot         = Depot.YES;
-    Sampling       sampling      = Sampling.ZERO;
+    RunMode runmode = RunMode.RUNMODE_AUTO;
+    int delay = 0;
+    StartPosition startposition = StartPosition.SILVER;
+    Lift hanging = Lift.YES;
+    Crater crater = Crater.NEAR;
+    Gold gold = Gold.CENTER;
+    Depot depot = Depot.YES;
+    Sampling sampling = Sampling.ZERO;
 
     /* Declare OpMode members. */
     private HalDashboard dashboard;
-    DanielBot_Hardware   robot   = new DanielBot_Hardware();
+    DanielBot_Hardware robot = new DanielBot_Hardware();
 
-    static final double  COUNTS_PER_MOTOR_REV      = 1120;    // Rev HD Hex v2.1 Motor encoder
-    static final double  DRIVE_GEAR_REDUCTION      = .825;       // This is < 1.0 if geared for torque
-    static final double  WHEEL_DIAMETER_INCHES     = 4.0;     // For figuring circumference
-    static final double  COUNTS_PER_INCH           = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
-            (WHEEL_DIAMETER_INCHES * 3.14159265);
+    static final double COUNTS_PER_MOTOR_REV = 1120;    // Rev HD Hex v2.1 Motor encoder
+    static final double DRIVE_GEAR_REDUCTION = .825;       // This is < 1.0 if geared for torque
+    static final double WHEEL_DIAMETER_INCHES = 4.0;     // For figuring circumference
+    static final double COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
+            (WHEEL_DIAMETER_INCHES * Math.PI);
 
-    static final double  LIFTONATOR_CONSTANT        = 280/9; //constant that converts liftonator to degrees (1120*10/360)
-    static final double  EXTENDOARM_CONSTANT        = 4480/(13 * 3.14159265); //constant that converts ExtendoArm to inches 1120/(3.25 * 3.14159265)
+    static final double LIFTONATOR_CONSTANT = 280 / 9; //constant that converts liftonator to degrees (1120*10/360)
+    static final double EXTENDOARM_CONSTANT = 4480 / (13 * Math.PI); //constant that converts ExtendoArm to inches 1120/(3.25 * 3.14159265)
 
     private static final String TFOD_MODEL_ASSET = "RoverRuckus.tflite";
     private static final String LABEL_GOLD_MINERAL = "Gold Mineral";
@@ -119,47 +125,24 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
      * Detection engine.
      */
     private TFObjectDetector tfod;
-    @Override public void runOpMode() {
+
+    @Override
+    public void runOpMode() {
         // Initialize the hardware -----------------------------------------------------------------
         robot.init(hardwareMap);
+        robot.pivotLock.setPosition(1);
+        robot.extensionLock.setPosition(0);
         // Initialize dashboard --------------------------------------------------------------------
         dashboard = HalDashboard.createInstance(telemetry);
 
-//        // Initialize Vuforia ----------------------------------------------------------------------
-//        /*
-//         * To start up Vuforia, tell it the view that we wish to use for camera monitor
-//         * (on the RC phone); If no camera monitor is desired, use the parameterless
-//         * constructor instead (commented out below).
-//         */
-//        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId",
-//                                                    "id", hardwareMap.appContext.getPackageName());
-//        VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
-//
-//        // Or, don't activate the Camera Monitor view, to save power
-//        //VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
-//
-//        // Our key
-//        parameters.vuforiaLicenseKey = "Aez7J07/////AAABmS8UUfYgtke9gtnv8lpOtUwWoahEf1DgQVHSXzYz9B1RjnN9agKHZOutrQmzOMd57S7KpZKOt6yvLF4rGqzWR4Re/EhtUIe1+MD9DYlEkHHX3bio1F0kblG0BgzIAxmM+u+2L10gHO4pyuUnPohg7/T5mY912NuZGocuhq65i20+xV1b3bjStwuZaKY14lXvEklvO8ZcFvR26928fxmJIVWtRqashdFZ5nxm1w/sqJ9eWJQv3mLZt7AVrclS5NwPxzSwlX6+8IK8dWIOOJuZx0mKVlQMNoAEXioCuIuuFwAMBtm+NMkjXTxtfiShYXnfD7e1pAUsMgksQBGl1cCqcpLr8dD1msx9nOlI6fsfMY9e";
-//
-//        /*
-//         * We also indicate which camera on the RC that we wish to use.
-//         * Here we chose the back (HiRes) camera (for greater range), but
-//         * for a competition robot, the front camera might be more convenient.
-//         */
-//        parameters.cameraDirection = VuforiaLocalizer.CameraDirection.BACK;
-//        this.vuforia = ClassFactory.createVuforiaLocalizer(parameters);
-//
-//        initVuforia();
-//
-//        if (ClassFactory.getInstance().canCreateTFObjectDetector()) {
-//            initTfod();
-//        } else {
-//            telemetry.addData("Sorry!", "This device is not compatible with TFOD");
-//        }
-//
-//        /** Wait for the game to begin */
-//        telemetry.addData(">", "Press Play to start tracking");
-//        telemetry.update();
+        // Initialize Vuforia ----------------------------------------------------------------------
+        initVuforia();
+
+        if (ClassFactory.getInstance().canCreateTFObjectDetector()) {
+            initTfod();
+        } else {
+            //telemetry.addData("Sorry!", "This device is not compatible with TFOD");
+        }
 
         // Run though the menu ---------------------------------------------------------------------
         doMenus();
@@ -179,60 +162,75 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
         if (DoTask("Init", runmode)) {
             if (hanging == Lift.YES) {
 
-
-                /** Activate Tensor Flow Object Detection. */
-//                if (tfod != null) {
-//                    tfod.activate();
-//                }
-//                if (tfod != null) {
-//                    // getUpdatedRecognitions() will return null if no new information is available since
-//                    // the last time that call was made.
-//                    List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
-//                    if (updatedRecognitions != null) {
-//                        telemetry.addData("# Object Detected", updatedRecognitions.size());
-//                        if (updatedRecognitions.size() == 3) {
-//                            int goldMineralX = -1;
-//                            int silverMineral1X = -1;
-//                            int silverMineral2X = -1;
-//                            for (Recognition recognition : updatedRecognitions) {
-//                                if (recognition.getLabel().equals(LABEL_GOLD_MINERAL)) {
-//                                    goldMineralX = (int) recognition.getLeft();
-//                                } else if (silverMineral1X == -1) {
-//                                    silverMineral1X = (int) recognition.getLeft();
-//                                } else {
-//                                    silverMineral2X = (int) recognition.getLeft();
-//                                }
-//                            }
-//                            if (goldMineralX != -1 && silverMineral1X != -1 && silverMineral2X != -1) {
-//                                if (goldMineralX < silverMineral1X && goldMineralX < silverMineral2X) {
-//                                    gold = Gold.LEFT;
-//                                } else if (goldMineralX > silverMineral1X && goldMineralX > silverMineral2X) {
-//                                    gold = Gold.RIGHT;
-//                                } else {
-//                                    gold = Gold.CENTER;
+                if (opModeIsActive()) {
+                    /** Activate Tensor Flow Object Detection. */
+                    if (tfod != null) {
+                        tfod.activate();
+                    }
+                    int i = 0;
+//                    while (opModeIsActive() && i < 50) {
+//                        if (tfod != null) {
+//                            // getUpdatedRecognitions() will return null if no new information is available since
+//                            // the last time that call was made.
+//                            List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
+//                            if (updatedRecognitions != null) {
+//                                //telemetry.addData("# Object Detected", updatedRecognitions.size());
+//                                if (updatedRecognitions.size() == 3) {
+//                                    int goldMineralX = -1;
+//                                    int silverMineral1X = -1;
+//                                    int silverMineral2X = -1;
+//                                    for (Recognition recognition : updatedRecognitions) {
+//                                        if (recognition.getLabel().equals(LABEL_GOLD_MINERAL)) {
+//                                            goldMineralX = (int) recognition.getLeft();
+//                                        } else if (silverMineral1X == -1) {
+//                                            silverMineral1X = (int) recognition.getLeft();
+//                                        } else {
+//                                            silverMineral2X = (int) recognition.getLeft();
+//                                        }
+//                                    }
+//                                    if (goldMineralX != -1 && silverMineral1X != -1 && silverMineral2X != -1) {
+//                                        if (goldMineralX < silverMineral1X && goldMineralX < silverMineral2X) {
+//                                            gold = Gold.LEFT;
+//                                            dashboard.displayPrintf(1, "Left");
+//                                            break;
+//                                        } else if (goldMineralX > silverMineral1X && goldMineralX > silverMineral2X) {
+//                                            gold = Gold.RIGHT;
+//                                            dashboard.displayPrintf(1, "Right");
+//                                            break;
+//                                        } else {
+//                                            gold = Gold.CENTER;
+//                                            dashboard.displayPrintf(1, "Center");
+//                                            break;
+//                                        }
+//                                    }
 //                                }
 //                            }
 //                        }
-//                        telemetry.update();
+//                        i++;
+//                        dashboard.displayPrintf(2, "%i", i);
 //                    }
-//                }
-//
-//
-//                if (tfod != null) {
-//                    tfod.shutdown();
-//                }
-//            }
-            robot.pivotLock.setPosition(0);
-            SlavedLift(1, -5);
-            sleep(100);
-            SlavedLift(.5, 90);
-            robot.extensionLock.setPosition(1);
-            sleep(100);
-            ExtendoArm5000_ACTIVATE(.5, 10);
-            SlavedLift(1, -90);
-            sleep(500);
-            }
-            else {
+                }
+
+                if (tfod != null) {
+                    tfod.shutdown();
+                }
+
+                robot.pivotLock.setPosition(.5);
+                SlavedLift(1, -10);
+                SlavedLift(1, 10);
+                SlavedLift(1, -10);
+                sleep(100);
+                SlavedLift(.5, 90);
+                robot.extensionLock.setPosition(1);
+                sleep(100);
+                ExtendoArm5000_ACTIVATE(.5, 5);
+                ExtendoArm5000_ACTIVATE(.5, -5);
+                ExtendoArm5000_ACTIVATE(.5, 20);
+                sleep(500);
+                SlavedLift(1, -80);
+                sleep(500);
+                ExtendoArm5000_ACTIVATE(.3, -20);
+            } else {
                 double random = Math.random();
                 if (random < (1 / 3))
                     gold = Gold.LEFT;
@@ -245,27 +243,8 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
 
         if (DoTask("Mineral Sampling", runmode)) {
             DriveRobotPosition(.5, 3);
-            if (sampling == Sampling.ONE || sampling == Sampling.TWO){
-                if (gold != Gold.CENTER) {
-                    if (gold == Gold.LEFT)
-                        DriveRobotTurn(.7, -35);
-                    else if (gold == Gold.RIGHT)
-                        DriveRobotTurn(.7, 35);
-                    DriveRobotPosition(1, 24);
-                    sleep(500);
-                    DriveRobotPosition(1, -24);
-                    if (gold == Gold.LEFT)
-                        DriveRobotTurn(.7, 35);
-                    else if (gold == Gold.RIGHT)
-                        DriveRobotTurn(.7, -35);
-                } else {
-                    DriveRobotPosition(1, 20);
-                    sleep(500);
-                    if (!(depot == Depot.NO && (sampling == Sampling.ONE || sampling == Sampling.ZERO)
-                            && crater == Crater.NEAR))
-                        DriveRobotPosition(1, -20);
-                }
-            }
+            if (sampling == Sampling.ONE || sampling == Sampling.TWO)
+                DriveSample();
             else
                 DriveRobotPosition(1, 20);
         }
@@ -276,48 +255,53 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
                 DriveRobotPosition(1, 26);
             }
             else if (depot == Depot.YES) {
-                if (crater == Crater.NEAR) {
-                    if (startposition == StartPosition.GOLD) {
-                        DriveRobotTurn(1, 90);
-                        sleep(500);
-                        DriveRobotPosition(1, 30);
-                        sleep(500);
-                        DriveRobotTurn(1, 135);
-                        sleep(500);
-                        DriveSidewaysTime(2, -1);
-                        DriveRobothug(1, 30, false);
-                        robot.collectOtron.setPower(-1);
-                        sleep(1000);
-                        robot.collectOtron.setPower(0);
-                        if (sampling == Sampling.ONE)
-                            DriveRobothug(1, -60, false);
-                    }
-                    else {
-                        DriveRobotTurn(1, -90);
-                        sleep(500);
-                        DriveRobotPosition(1, 30);
-                        sleep(500);
-                        DriveRobotTurn(1, -135);
-                        sleep(500);
-                        DriveSidewaysTime(2, 1);
-                        DriveRobothug(1, 30, true);
-                        robot.collectOtron.setPower(-1);
-                        sleep(1000);
-                        robot.collectOtron.setPower(0);
-                        if (sampling == Sampling.ONE)
-                            DriveRobothug(1, -60, true);
-                    }
+                if (startposition == StartPosition.GOLD && crater == Crater.NEAR)
+                    DriveRobotTurn(1, 90);
+                else if (startposition == StartPosition.SILVER ||
+                        (startposition == StartPosition.GOLD && crater == Crater.FAR))
+                    DriveRobotTurn(1, -90);
+                sleep(500);
+                DriveRobotPosition(1, 30);
+                sleep(500);
+                if (startposition == StartPosition.GOLD && crater == Crater.FAR)
+                    DriveRobotTurn(1, 135);
+                else if ((startposition == StartPosition.GOLD && crater == Crater.NEAR) ||
+                        (startposition == StartPosition.SILVER))
+                    DriveRobotTurn(1, -135);
+                sleep(500);
+                if (startposition == StartPosition.SILVER ||
+                        startposition == StartPosition.GOLD && crater == Crater.NEAR) {
+                    DriveSidewaysTime(2, -1); //right
+                    DriveRobothug(1, 30, false);
+                } else if (startposition == StartPosition.GOLD && crater == Crater.FAR) {
+                    DriveSidewaysTime(2, 1); //left
+                    DriveRobothug(1, 30, true);
+                }
+                robot.collectOtron.setPower(-1);
+                sleep(1000);
+                robot.collectOtron.setPower(0);
+                if (sampling == Sampling.ONE)
+                    DriveRobotPosition(1, -60);
+                else {//im here FIXME rest of Drive my Car (Beep Beep, Beep Beep, Yeah)
+                    DriveRobothug(1, -30, false);
+                    DriveSidewaysTime(2, 1);
+                    DriveRobotTurn(1, 135);
+                    sleep(500);
+                    DriveRobotPosition(1, 30);
+                    sleep(500);
+                    DriveRobotTurn(1, -90);
+                    DriveSample();
+                    DriveRobotPosition(1, 26);
                 }
             }
-        }
 
-        // drive
+        }
         if (DoTask("Park", runmode)) {
 
         }
 
-
     }
+
 
     /*
      * FUNCTIONS -----------------------------------------------------------------------------------
@@ -587,6 +571,28 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
 
     }
 
+    void DriveSample () {
+        if (gold != Gold.CENTER) {
+            if (gold == Gold.LEFT)
+                DriveRobotTurn(.7, -35);
+            else if (gold == Gold.RIGHT)
+                DriveRobotTurn(.7, 35);
+            DriveRobotPosition(1, 24);
+            sleep(500);
+            DriveRobotPosition(1, -24);
+            if (gold == Gold.LEFT)
+                DriveRobotTurn(.7, 35);
+            else if (gold == Gold.RIGHT)
+                DriveRobotTurn(.7, -35);
+        } else {
+            DriveRobotPosition(1, 20);
+            sleep(500);
+            if (!(depot == Depot.NO && (sampling == Sampling.ONE || sampling == Sampling.ZERO)
+                    && crater == Crater.NEAR))
+                DriveRobotPosition(1, -20);
+        }
+    }
+
     /**
      * SlavedLift
      * Positive swings back
@@ -699,7 +705,7 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
         startPositionMenu.addChoice("Gold Side", StartPosition.GOLD, false, liftMenu);
 
         liftMenu.addChoice("Yes", Lift.YES, true, samplingMenu);
-        liftMenu.addChoice("NO", Lift.NO, false, samplingMenu);
+        liftMenu.addChoice("No", Lift.NO, false, samplingMenu);
 
         samplingMenu.addChoice("0", Sampling.ZERO, false, depotMenu);
         samplingMenu.addChoice("1", Sampling.ONE, true, depotMenu);
@@ -716,6 +722,8 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
         delay = (int) delayMenu.getCurrentValue();
         hanging = liftMenu.getCurrentChoiceObject();
         startposition = startPositionMenu.getCurrentChoiceObject();
+        depot = depotMenu.getCurrentChoiceObject();
+        sampling = samplingMenu.getCurrentChoiceObject();
         crater = craterMenu.getCurrentChoiceObject();
 
         dashboard.displayPrintf(9, "Mode: %s (%s)", modeMenu.getCurrentChoiceText(), runmode.toString());
