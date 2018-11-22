@@ -1,8 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -13,14 +11,17 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 public class DanielBot_Hardware
 {
+    // Constant that converts the pivot arm position to degrees (1120*10/360)
+    static final double PIVOTARM_CONSTANT = 280 / 9;
+
     /* Public OpMode members. */
     public DcMotor frontLeftDrive     = null;
     public DcMotor backLeftDrive      = null;
     public DcMotor frontRightDrive    = null;
     public DcMotor backRightDrive     = null;
     public DcMotor extendoArm5000     = null;
-    public DcMotor liftinator1        = null;
-    public DcMotor liftinator2        = null;
+    public DcMotor pivotArm1 = null;
+    public DcMotor pivotArm2 = null;
     public DcMotor collectOtron       = null;
 //    public CRServo blahCR             = null;
 //    public Servo   blah               = null;
@@ -47,8 +48,8 @@ public class DanielBot_Hardware
         backRightDrive = hwMap.dcMotor.get("back_right_drive");
 
         extendoArm5000 = hwMap.dcMotor.get("extendoArm_5000");
-        liftinator1 = hwMap.dcMotor.get("liftinator1");
-        liftinator2 = hwMap.dcMotor.get("liftinator2");
+        pivotArm1 = hwMap.dcMotor.get("pivotArm1");
+        pivotArm2 = hwMap.dcMotor.get("pivotArm2");
         collectOtron = hwMap.dcMotor.get("collectOtron");
 
 
@@ -59,8 +60,8 @@ public class DanielBot_Hardware
         backRightDrive.setDirection(DcMotor.Direction.FORWARD);
 
         extendoArm5000.setDirection(DcMotor.Direction.FORWARD);
-        liftinator1.setDirection(DcMotor.Direction.FORWARD);
-        liftinator2.setDirection(DcMotor.Direction.FORWARD);
+        pivotArm1.setDirection(DcMotor.Direction.FORWARD);
+        pivotArm2.setDirection(DcMotor.Direction.FORWARD);
         collectOtron.setDirection(DcMotor.Direction.FORWARD);
 
 
@@ -71,8 +72,8 @@ public class DanielBot_Hardware
         backRightDrive.setPower(0);
 
         extendoArm5000.setPower(0);
-        liftinator1.setPower(0);
-        liftinator2.setPower(0);
+        pivotArm1.setPower(0);
+        pivotArm2.setPower(0);
         collectOtron.setPower(0);
 
 
@@ -83,8 +84,8 @@ public class DanielBot_Hardware
         backLeftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         extendoArm5000.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        liftinator1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        liftinator2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        pivotArm1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        pivotArm2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         collectOtron.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
 
@@ -95,8 +96,8 @@ public class DanielBot_Hardware
         backRightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         extendoArm5000.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        liftinator1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        liftinator2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        pivotArm1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        pivotArm2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         // This has no encoder
         collectOtron.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -109,9 +110,52 @@ public class DanielBot_Hardware
         extensionLock.setPosition(1);
         pivotLock.setPosition(.5);
 
-//        blahCR = hwMap.crservo.get("relicLift");
+//        blahCR = hwMap.crservo.get("cr_servo");
 //        blahCR.setPower(0);
 //        blahCR.setDirection(CRServo.Direction.FORWARD);
+    }
+
+    /**
+     * PivotArmSetRotation
+     * Positive swings back
+     * @param power Power level
+     * @param degrees Degrees of rotation
+     */
+    void PivotArmSetRotation(double power, double degrees)
+    {
+        int position = (int)(degrees* PIVOTARM_CONSTANT);
+        pivotArm1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        pivotArm2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        pivotArm1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        pivotArm2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        pivotArm1.setPower(power);
+        pivotArm2.setPower(power);
+        pivotArm1.setTargetPosition(position);
+        pivotArm2.setTargetPosition(position);
+        for (int i=0; i < 5; i++) {    // Repeat check 5 times, sleeping 10ms between,
+            // as isBusy can be a bit unreliable
+            while (pivotArm1.isBusy() && pivotArm2.isBusy()) {
+                //dashboard.displayPrintf(10, "The ENEMY gates are down!");
+            }
+            sleep(10);
+        }
+        pivotArm1.setPower(0);
+        pivotArm2.setPower(0);
+    }
+
+    /**
+     * Sleeps for the given amount of milliseconds, or until the thread is interrupted. This is
+     * simple shorthand for the operating-system-provided {@link Thread#sleep(long) sleep()} method.
+     *
+     * @param milliseconds amount of time to sleep, in milliseconds
+     * @see Thread#sleep(long)
+     */
+    public final void sleep(long milliseconds) {
+        try {
+            Thread.sleep(milliseconds);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 }
 

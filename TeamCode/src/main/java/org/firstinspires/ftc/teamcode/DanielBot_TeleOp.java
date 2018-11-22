@@ -148,18 +148,18 @@ public class DanielBot_TeleOp extends OpMode {
 
         if (gamepad1.y || gamepad2.y) {
             //robot.pivotLock.setPosition(1);
-            robot.liftinator1.setPower(1);
-            robot.liftinator2.setPower(1);
+            robot.pivotArm1.setPower(1);
+            robot.pivotArm2.setPower(1);
         }
         else if (gamepad1.a || gamepad2.a) {
             //robot.pivotLock.setPosition(1);
-            robot.liftinator1.setPower(-1);
-            robot.liftinator2.setPower(-1);
+            robot.pivotArm1.setPower(-1);
+            robot.pivotArm2.setPower(-1);
         }
         else {
             //robot.pivotLock.setPosition(0);
-            robot.liftinator1.setPower(0);
-            robot.liftinator2.setPower(0);
+            robot.pivotArm1.setPower(0);
+            robot.pivotArm2.setPower(0);
         }
 
         if (gamepad1.right_trigger > 0)

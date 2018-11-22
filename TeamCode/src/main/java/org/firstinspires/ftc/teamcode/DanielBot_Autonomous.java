@@ -31,6 +31,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -106,7 +107,7 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
     static final double COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
             (WHEEL_DIAMETER_INCHES * Math.PI);
 
-    static final double LIFTONATOR_CONSTANT = 280 / 9; //constant that converts liftonator to degrees (1120*10/360)
+    static final double PIVOTARM_CONSTANT = 280 / 9; //constant that converts liftonator to degrees (1120*10/360)
     static final double EXTENDOARM_CONSTANT = 4480 / (13 * Math.PI); //constant that converts ExtendoArm to inches 1120/(3.25 * 3.14159265)
 
     private static final String TFOD_MODEL_ASSET = "RoverRuckus.tflite";
@@ -130,7 +131,7 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
     public void runOpMode() {
         // Initialize the hardware -----------------------------------------------------------------
         robot.init(hardwareMap);
-        robot.pivotLock.setPosition(1);
+        //robot.pivotLock.setPosition(1);
         robot.extensionLock.setPosition(0);
         // Initialize dashboard --------------------------------------------------------------------
         dashboard = HalDashboard.createInstance(telemetry);
@@ -138,14 +139,15 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
         // Initialize Vuforia ----------------------------------------------------------------------
         initVuforia();
 
+        // Run though the menu ---------------------------------------------------------------------
+        doMenus();
+
         if (ClassFactory.getInstance().canCreateTFObjectDetector()) {
             initTfod();
         } else {
-            //telemetry.addData("Sorry!", "This device is not compatible with TFOD");
+            dashboard.displayPrintf(1,"Sorry! This device is not compatible with TFOD");
         }
 
-        // Run though the menu ---------------------------------------------------------------------
-        doMenus();
         dashboard.displayPrintf(0, "Status: Ready to start");
 
         // Wait for the game to start (driver presses PLAY)
@@ -155,79 +157,83 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
          * ----- AUTONOMOUS START-------------------------------------------------------------------
          */
 
+        dashboard.displayPrintf(0, "Status: Running");
+
         // Pause the program for the selected delay period
         sleep(delay);
 
-
+        // Init
         if (DoTask("Init", runmode)) {
             if (hanging == Lift.YES) {
 
-                if (opModeIsActive()) {
-                    /** Activate Tensor Flow Object Detection. */
+                // Sample minerals with TensorFlow
+                if (opModeIsActive() && DoTask("Sample minerals with TensorFlow", runmode)) {
+                    // Activate TensorFlow Object Detection.
                     if (tfod != null) {
                         tfod.activate();
                     }
                     int i = 0;
-//                    while (opModeIsActive() && i < 50) {
-//                        if (tfod != null) {
-//                            // getUpdatedRecognitions() will return null if no new information is available since
-//                            // the last time that call was made.
-//                            List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
-//                            if (updatedRecognitions != null) {
-//                                //telemetry.addData("# Object Detected", updatedRecognitions.size());
-//                                if (updatedRecognitions.size() == 3) {
-//                                    int goldMineralX = -1;
-//                                    int silverMineral1X = -1;
-//                                    int silverMineral2X = -1;
-//                                    for (Recognition recognition : updatedRecognitions) {
-//                                        if (recognition.getLabel().equals(LABEL_GOLD_MINERAL)) {
-//                                            goldMineralX = (int) recognition.getLeft();
-//                                        } else if (silverMineral1X == -1) {
-//                                            silverMineral1X = (int) recognition.getLeft();
-//                                        } else {
-//                                            silverMineral2X = (int) recognition.getLeft();
-//                                        }
-//                                    }
-//                                    if (goldMineralX != -1 && silverMineral1X != -1 && silverMineral2X != -1) {
-//                                        if (goldMineralX < silverMineral1X && goldMineralX < silverMineral2X) {
-//                                            gold = Gold.LEFT;
-//                                            dashboard.displayPrintf(1, "Left");
-//                                            break;
-//                                        } else if (goldMineralX > silverMineral1X && goldMineralX > silverMineral2X) {
-//                                            gold = Gold.RIGHT;
-//                                            dashboard.displayPrintf(1, "Right");
-//                                            break;
-//                                        } else {
-//                                            gold = Gold.CENTER;
-//                                            dashboard.displayPrintf(1, "Center");
-//                                            break;
-//                                        }
-//                                    }
-//                                }
-//                            }
-//                        }
-//                        i++;
-//                        dashboard.displayPrintf(2, "%i", i);
-//                    }
+                    ElapsedTime holdTimer = new ElapsedTime();
+                    holdTimer.reset();
+                    while (opModeIsActive() && (holdTimer.time() < 2)) {
+                        if (tfod != null) {
+                            // getUpdatedRecognitions() will return null if no new information is available since
+                            // the last time that call was made.
+                            List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
+                            if (updatedRecognitions != null) {
+                                dashboard.displayPrintf(1,"%d objects detected", updatedRecognitions.size());
+                                if (updatedRecognitions.size() == 3) {
+                                    int goldMineralX = -1;
+                                    int silverMineral1X = -1;
+                                    int silverMineral2X = -1;
+                                    for (Recognition recognition : updatedRecognitions) {
+                                        if (recognition.getLabel().equals(LABEL_GOLD_MINERAL)) {
+                                            goldMineralX = (int) recognition.getLeft();
+                                        } else if (silverMineral1X == -1) {
+                                            silverMineral1X = (int) recognition.getLeft();
+                                        } else {
+                                            silverMineral2X = (int) recognition.getLeft();
+                                        }
+                                    }
+                                    if (goldMineralX != -1 && silverMineral1X != -1 && silverMineral2X != -1) {
+                                        if (goldMineralX < silverMineral1X && goldMineralX < silverMineral2X) {
+                                            gold = Gold.LEFT;
+                                            dashboard.displayPrintf(1, "Left");
+                                            break;
+                                        } else if (goldMineralX > silverMineral1X && goldMineralX > silverMineral2X) {
+                                            gold = Gold.RIGHT;
+                                            dashboard.displayPrintf(1, "Right");
+                                            break;
+                                        } else {
+                                            gold = Gold.CENTER;
+                                            dashboard.displayPrintf(1, "Center");
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        i++;
+                        dashboard.displayPrintf(2, "TensorFlow iteration count: %d", i);
+                    }
+
+                    // Shutdown TensorFlow
+                    if (tfod != null) {
+                        tfod.shutdown();
+                    }
                 }
 
-                if (tfod != null) {
-                    tfod.shutdown();
-                }
-
-                robot.pivotLock.setPosition(.5);
-                SlavedLift(1, -10);
-                SlavedLift(1, 10);
-                SlavedLift(1, -10);
+                //robot.pivotLock.setPosition(.5);
+                //PivotArmUnlock();
+                PivotArmSetRotation(.5, -10);
                 sleep(100);
-                SlavedLift(.5, 90);
+                PivotArmSetRotation(.5, 90);
                 robot.extensionLock.setPosition(1);
                 sleep(100);
-                ExtendoArm5000_ACTIVATE(.5, 5);
-                ExtendoArm5000_ACTIVATE(.5, -5);
+                ExtendoArm5000_UNLATCH();
                 ExtendoArm5000_ACTIVATE(.5, 20);
                 sleep(500);
-                SlavedLift(1, -80);
+                PivotArmSetRotation(1, -80);
                 sleep(500);
                 ExtendoArm5000_ACTIVATE(.3, -20);
             } else {
@@ -594,31 +600,62 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
     }
 
     /**
-     * SlavedLift
+     * PivotArmSetRotation
      * Positive swings back
      * @param power Power level
      * @param degrees Degrees of rotation
      */
-    void SlavedLift (double power, double degrees)
+    void PivotArmSetRotation(double power, double degrees)
     {
-        int position = (int)(degrees*LIFTONATOR_CONSTANT);
-        robot.liftinator1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.liftinator2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.liftinator1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.liftinator2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.liftinator1.setPower(power);
-        robot.liftinator2.setPower(power);
-        robot.liftinator1.setTargetPosition(position);
-        robot.liftinator2.setTargetPosition(position);
+        int position = (int)(degrees* PIVOTARM_CONSTANT);
+        robot.pivotArm1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.pivotArm2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.pivotArm1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        robot.pivotArm2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        robot.pivotArm1.setPower(power);
+        robot.pivotArm2.setPower(power);
+        robot.pivotArm1.setTargetPosition(position);
+        robot.pivotArm2.setTargetPosition(position);
         for (int i=0; i < 5; i++) {    // Repeat check 5 times, sleeping 10ms between,
             // as isBusy can be a bit unreliable
-            while (robot.liftinator1.isBusy() && robot.liftinator2.isBusy()) {
+            while (robot.pivotArm1.isBusy() && robot.pivotArm2.isBusy()) {
                 dashboard.displayPrintf(10, "The ENEMY gates are down!");
             }
             sleep(10);
         }
-        robot.liftinator1.setPower(0);
-        robot.liftinator2.setPower(0);
+        robot.pivotArm1.setPower(0);
+        robot.pivotArm2.setPower(0);
+    }
+
+    /**
+     * PivotArmUnlock
+     */
+    void PivotArmUnlock()
+    {
+        robot.pivotArm1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.pivotArm2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.pivotArm1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.pivotArm2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.pivotArm1.setPower(1);
+        robot.pivotArm2.setPower(1);
+        sleep(150);
+        robot.pivotArm1.setPower(-1);
+        robot.pivotArm2.setPower(-1);
+        sleep(150);
+        robot.pivotArm1.setPower(1);
+        robot.pivotArm2.setPower(1);
+        sleep(150);
+        robot.pivotArm1.setPower(-1);
+        robot.pivotArm2.setPower(-1);
+        sleep(150);
+        robot.pivotArm1.setPower(1);
+        robot.pivotArm2.setPower(1);
+        sleep(150);
+        robot.pivotArm1.setPower(-1);
+        robot.pivotArm2.setPower(-1);
+        sleep(150);
+        robot.pivotArm1.setPower(0);
+        robot.pivotArm2.setPower(0);
     }
 
     /**
@@ -641,6 +678,28 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
             }
             sleep(10);
         }
+        robot.extendoArm5000.setPower(0);
+    }
+
+    /**
+     * ExtendoArm_UNLATCH unlatches the ExtendoArm
+     */
+    void ExtendoArm5000_UNLATCH()
+    {
+        robot.extendoArm5000.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.extendoArm5000.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.extendoArm5000.setPower(1);
+        sleep(150);
+        robot.extendoArm5000.setPower(-1);
+        sleep(150);
+        robot.extendoArm5000.setPower(1);
+        sleep(150);
+        robot.extendoArm5000.setPower(-1);
+        sleep(150);
+        robot.extendoArm5000.setPower(1);
+        sleep(150);
+        robot.extendoArm5000.setPower(-1);
+        sleep(150);
         robot.extendoArm5000.setPower(0);
     }
 
