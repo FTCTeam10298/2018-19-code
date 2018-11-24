@@ -38,6 +38,7 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
+import org.opencv.core.Mat;
 
 import ftclib.FtcChoiceMenu;
 import ftclib.FtcMenu;
@@ -108,7 +109,7 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
             (WHEEL_DIAMETER_INCHES * Math.PI);
 
     static final double PIVOTARM_CONSTANT = 280 / 9; //constant that converts liftonator to degrees (1120*10/360)
-    static final double EXTENDOARM_CONSTANT = 4480 / (13 * Math.PI); //constant that converts ExtendoArm to inches 1120/(3.25 * 3.14159265)
+    static final double EXTENDOARM_CONSTANT = 6720 / (13 * Math.PI); //constant that converts ExtendoArm to inches 1120/(2.16666667 * 3.14159265)
 
     private static final String TFOD_MODEL_ASSET = "RoverRuckus.tflite";
     private static final String LABEL_GOLD_MINERAL = "Gold Mineral";
@@ -164,71 +165,14 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
 
         // Init
         if (DoTask("Init", runmode)) {
+            TensorFlow();
             if (hanging == Lift.YES) {
-
-                // Sample minerals with TensorFlow
-                if (opModeIsActive() && DoTask("Sample minerals with TensorFlow", runmode)) {
-                    // Activate TensorFlow Object Detection.
-                    if (tfod != null) {
-                        tfod.activate();
-                    }
-                    int i = 0;
-                    ElapsedTime holdTimer = new ElapsedTime();
-                    holdTimer.reset();
-                    while (opModeIsActive() && (holdTimer.time() < 2)) {
-                        if (tfod != null) {
-                            // getUpdatedRecognitions() will return null if no new information is available since
-                            // the last time that call was made.
-                            List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
-                            if (updatedRecognitions != null) {
-                                dashboard.displayPrintf(1,"%d objects detected", updatedRecognitions.size());
-                                if (updatedRecognitions.size() == 3) {
-                                    int goldMineralX = -1;
-                                    int silverMineral1X = -1;
-                                    int silverMineral2X = -1;
-                                    for (Recognition recognition : updatedRecognitions) {
-                                        if (recognition.getLabel().equals(LABEL_GOLD_MINERAL)) {
-                                            goldMineralX = (int) recognition.getLeft();
-                                        } else if (silverMineral1X == -1) {
-                                            silverMineral1X = (int) recognition.getLeft();
-                                        } else {
-                                            silverMineral2X = (int) recognition.getLeft();
-                                        }
-                                    }
-                                    if (goldMineralX != -1 && silverMineral1X != -1 && silverMineral2X != -1) {
-                                        if (goldMineralX < silverMineral1X && goldMineralX < silverMineral2X) {
-                                            gold = Gold.LEFT;
-                                            dashboard.displayPrintf(1, "Left");
-                                            break;
-                                        } else if (goldMineralX > silverMineral1X && goldMineralX > silverMineral2X) {
-                                            gold = Gold.RIGHT;
-                                            dashboard.displayPrintf(1, "Right");
-                                            break;
-                                        } else {
-                                            gold = Gold.CENTER;
-                                            dashboard.displayPrintf(1, "Center");
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        i++;
-                        dashboard.displayPrintf(2, "TensorFlow iteration count: %d", i);
-                    }
-
-                    // Shutdown TensorFlow
-                    if (tfod != null) {
-                        tfod.shutdown();
-                    }
-                }
-
                 //robot.pivotLock.setPosition(.5);
                 //PivotArmUnlock();
                 PivotArmSetRotation(.5, -10);
                 sleep(100);
                 PivotArmSetRotation(.5, 90);
-                robot.extensionLock.setPosition(1);
+                robot.extensionLock.setPosition(.5);
                 sleep(100);
                 ExtendoArm5000_UNLATCH();
                 ExtendoArm5000_ACTIVATE(.5, 20);
@@ -237,13 +181,9 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
                 sleep(500);
                 ExtendoArm5000_ACTIVATE(.3, -20);
             } else {
-                double random = Math.random();
-                if (random < (1 / 3))
-                    gold = Gold.LEFT;
-                else if (random < (2 / 3))
-                    gold = Gold.CENTER;
-                else
-                    gold = Gold.RIGHT;
+                DriveRobotPosition(1, -3);
+                sleep(500);
+                DriveRobotTurn(.35, 180);
             }
         }
 
@@ -258,7 +198,7 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
         if (DoTask("Drive my Car", runmode)) {
             if (depot == Depot.NO && (sampling == Sampling.ONE || sampling == Sampling.ZERO)
                     && crater == Crater.NEAR) {
-                DriveRobotPosition(1, 26);
+                DriveRobotPosition(1, 16);
             }
             else if (depot == Depot.YES) {
                 if (startposition == StartPosition.GOLD && crater == Crater.NEAR)
@@ -584,12 +524,14 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
             else if (gold == Gold.RIGHT)
                 DriveRobotTurn(.7, 35);
             DriveRobotPosition(1, 24);
-            sleep(500);
-            DriveRobotPosition(1, -24);
-            if (gold == Gold.LEFT)
-                DriveRobotTurn(.7, 35);
-            else if (gold == Gold.RIGHT)
-                DriveRobotTurn(.7, -35);
+            if (sampling == Sampling.TWO) {
+                sleep(500);
+                DriveRobotPosition(1, -24);
+                if (gold == Gold.LEFT)
+                    DriveRobotTurn(.7, 35);
+                else if (gold == Gold.RIGHT)
+                    DriveRobotTurn(.7, -35);
+            }
         } else {
             DriveRobotPosition(1, 20);
             sleep(500);
@@ -704,6 +646,75 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
     }
 
     /**
+     * Determines mineral with TensorFlow
+     */
+    void TensorFlow () {
+        // Sample minerals with TensorFlow
+        if (opModeIsActive() && DoTask("Sample minerals with TensorFlow", runmode)) {
+            // Activate TensorFlow Object Detection.
+            if (tfod != null) {
+                tfod.activate();
+            }
+            int i = 0;
+            ElapsedTime holdTimer = new ElapsedTime();
+            while (opModeIsActive() && (holdTimer.time() < 2)) {
+                if (tfod != null) {
+                    // getUpdatedRecognitions() will return null if no new information is available since
+                    // the last time that call was made.
+                    List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
+                    if (updatedRecognitions != null) {
+                        dashboard.displayPrintf(1,"%d objects detected", updatedRecognitions.size());
+                        if (updatedRecognitions.size() >= 1) {
+                            double left = Math.random()/2;
+                            double right = Math.random()/2;
+                            double center = Math.random()/2;
+                            int vote = 0;
+                            final int WIDTH = updatedRecognitions.get(0).getImageWidth();
+                            for (Recognition recognition : updatedRecognitions) {
+                                if (recognition.getLabel().equals(LABEL_GOLD_MINERAL))
+                                    vote++;
+                                else
+                                    vote--;
+                                if ((int) recognition.getLeft() < WIDTH/3)
+                                    left+=vote;
+                                else if ((int) recognition.getLeft() < 2*WIDTH/3)
+                                    center+=vote;
+                                else
+                                    right+=vote;
+                                vote=0;
+                            }
+                            if (left > center && left > right) {
+                                gold=Gold.LEFT;
+                                if (left > .5)
+                                    break;
+                                dashboard.displayPrintf(2, "Left");
+                            }
+                            else if (center > right) {
+                                gold=Gold.CENTER;
+                                if (center > .5)
+                                    break;
+                                dashboard.displayPrintf(2, "Center");
+                            }
+                            else {
+                                gold=Gold.RIGHT;
+                                if (right > .5)
+                                    break;
+                                dashboard.displayPrintf(2, "Right");
+                            }
+                        }
+                    }
+                }
+                i++;
+                dashboard.displayPrintf(2, "TensorFlow iteration count: %d", i);
+            }
+            // Shutdown TensorFlow
+            if (tfod != null) {
+                tfod.shutdown();
+            }
+        }
+    }
+
+    /**
      * Initialize the Vuforia localization engine.
      */
     private void initVuforia() {
@@ -730,6 +741,19 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
         TFObjectDetector.Parameters tfodParameters = new TFObjectDetector.Parameters(tfodMonitorViewId);
         tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia);
         tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABEL_GOLD_MINERAL, LABEL_SILVER_MINERAL);
+    }
+
+    /**
+     * Samples a random mineral
+     */
+    void randomMineral () {
+        double random = Math.random();
+        if (random < (1 / 3))
+            gold = Gold.LEFT;
+        else if (random < (2 / 3))
+            gold = Gold.CENTER;
+        else
+            gold = Gold.RIGHT;
     }
 
 
