@@ -62,7 +62,7 @@ public class DanielBot_Hardware
         extendoArm5000.setDirection(DcMotor.Direction.FORWARD);
         pivotArm1.setDirection(DcMotor.Direction.FORWARD);
         pivotArm2.setDirection(DcMotor.Direction.FORWARD);
-        collectOtron.setDirection(DcMotor.Direction.FORWARD);
+        collectOtron.setDirection(DcMotor.Direction.REVERSE);
 
 
         // Set all motors to zero power

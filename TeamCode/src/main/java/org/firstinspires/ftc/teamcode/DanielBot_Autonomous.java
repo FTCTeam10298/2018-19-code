@@ -109,7 +109,7 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
             (WHEEL_DIAMETER_INCHES * Math.PI);
 
     static final double PIVOTARM_CONSTANT = 280 / 9; //constant that converts liftonator to degrees (1120*10/360)
-    static final double EXTENDOARM_CONSTANT = 6720 / (13 * Math.PI); //constant that converts ExtendoArm to inches 1120/(2.16666667 * 3.14159265)
+    static final double EXTENDOARM_CONSTANT = 1120 * 2 / (3 * Math.PI); //constant that converts ExtendoArm to inches 1120 * 2/(3 * 3.14159265)
 
     private static final String TFOD_MODEL_ASSET = "RoverRuckus.tflite";
     private static final String LABEL_GOLD_MINERAL = "Gold Mineral";
@@ -151,6 +151,39 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
 
         dashboard.displayPrintf(0, "Status: Ready to start");
 
+//        //Auto test
+//        robot.backRightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//        robot.backLeftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//        robot.frontRightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//        robot.frontLeftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//
+//        robot.backLeftDrive.setPower(0.5);
+//        robot.backRightDrive.setPower(0.5);
+//        robot.frontLeftDrive.setPower(0.5);
+//        robot.frontRightDrive.setPower(0.5);
+//
+//        robot.backRightDrive.setTargetPosition(5000);
+//        while (robot.backRightDrive.isBusy()) {
+//            sleep(10);
+//        }
+//
+//        robot.backLeftDrive.setTargetPosition(5000);
+//        while (robot.backLeftDrive.isBusy()) {
+//            sleep(10);
+//        }
+//
+//        robot.frontRightDrive.setTargetPosition(5000);
+//        while (robot.frontRightDrive.isBusy()) {
+//            sleep(10);
+//        }
+//
+//        robot.frontLeftDrive.setTargetPosition(5000);
+//        while (robot.frontLeftDrive.isBusy()) {
+//            sleep(10);
+//        }
+//
+//        sleep(50000);
+
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
 
@@ -169,30 +202,30 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
             if (hanging == Lift.YES) {
                 //robot.pivotLock.setPosition(.5);
                 //PivotArmUnlock();
-                PivotArmSetRotation(.5, -10);
-                sleep(100);
-                PivotArmSetRotation(.5, 90);
-                robot.extensionLock.setPosition(.5);
-                sleep(100);
-                ExtendoArm5000_UNLATCH();
-                ExtendoArm5000_ACTIVATE(.5, 20);
-                sleep(500);
-                PivotArmSetRotation(1, -80);
-                sleep(500);
-                ExtendoArm5000_ACTIVATE(.3, -20);
+                PivotArmSetRotation(.5, -19, false);
+                sleep(50);
+                PivotArmSetRotation(.5, 95, true);
+                sleep(50);
+                ExtendoArm5000_ACTIVATE(.5, 5);
+                sleep(50);
+                DriveRobotPosition(.5, 3);
+                sleep(50);
+                ExtendoArm5000_ACTIVATE(.3, -6);
+                sleep(50);
+                PivotArmSetRotation(1, -85, false);
             } else {
                 DriveRobotPosition(1, -3);
-                sleep(500);
+                sleep(300);
                 DriveRobotTurn(.35, 180);
+                DriveRobotPosition(1, 3);
             }
         }
 
         if (DoTask("Mineral Sampling", runmode)) {
-            DriveRobotPosition(.5, 3);
             if (sampling == Sampling.ONE || sampling == Sampling.TWO)
                 DriveSample();
             else
-                DriveRobotPosition(1, 20);
+                DriveRobotPosition(.5, 20);
         }
 
         if (DoTask("Drive my Car", runmode)) {
@@ -201,33 +234,42 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
                 DriveRobotPosition(1, 16);
             }
             else if (depot == Depot.YES) {
+                DriveRobotPosition(.5, 10);
                 if (startposition == StartPosition.GOLD && crater == Crater.NEAR)
-                    DriveRobotTurn(1, 90);
+                    DriveRobotTurn(.3, 90);
                 else if (startposition == StartPosition.SILVER ||
                         (startposition == StartPosition.GOLD && crater == Crater.FAR))
-                    DriveRobotTurn(1, -90);
-                sleep(500);
-                DriveRobotPosition(1, 30);
-                sleep(500);
+                    DriveRobotTurn(.3, -80);
+                sleep(50);
+                DriveRobotPosition(.5, 35);
+                sleep(50);
                 if (startposition == StartPosition.GOLD && crater == Crater.FAR)
-                    DriveRobotTurn(1, 135);
+                    DriveRobotTurn(.3, 45);
                 else if ((startposition == StartPosition.GOLD && crater == Crater.NEAR) ||
                         (startposition == StartPosition.SILVER))
-                    DriveRobotTurn(1, -135);
-                sleep(500);
+                    DriveRobotTurn(.3, -45);
+                sleep(50);
                 if (startposition == StartPosition.SILVER ||
                         startposition == StartPosition.GOLD && crater == Crater.NEAR) {
-                    DriveSidewaysTime(2, -1); //right
-                    DriveRobothug(1, 30, false);
+                    DriveSidewaysTime(1, -1); //right
+                    DriveRobothug(1, 50, false);
                 } else if (startposition == StartPosition.GOLD && crater == Crater.FAR) {
-                    DriveSidewaysTime(2, 1); //left
-                    DriveRobothug(1, 30, true);
+                    DriveSidewaysTime(1, 1); //left
+                    DriveRobothug(1, 50, true);
                 }
-                robot.collectOtron.setPower(-1);
-                sleep(1000);
+                robot.collectOtron.setPower(1);
+                sleep(800);
                 robot.collectOtron.setPower(0);
-                if (sampling == Sampling.ONE)
-                    DriveRobotPosition(1, -60);
+                if (sampling == Sampling.ONE) {
+                    DriveRobotPosition(1, -50);
+                    if (startposition == StartPosition.SILVER ||
+                            startposition == StartPosition.GOLD && crater == Crater.NEAR) {
+                        DriveSidewaysTime(1, -1); //right
+                    } else if (startposition == StartPosition.GOLD && crater == Crater.FAR) {
+                        DriveSidewaysTime(1, 1); //left
+                    }
+                    DriveRobotPosition(1, -22.5);
+                }
                 else {//im here FIXME rest of Drive my Car (Beep Beep, Beep Beep, Yeah)
                     DriveRobothug(1, -30, false);
                     DriveSidewaysTime(2, 1);
@@ -520,17 +562,18 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
     void DriveSample () {
         if (gold != Gold.CENTER) {
             if (gold == Gold.LEFT)
-                DriveRobotTurn(.7, -35);
+                DriveRobotTurn(.4, -35);
             else if (gold == Gold.RIGHT)
-                DriveRobotTurn(.7, 35);
-            DriveRobotPosition(1, 24);
-            if (sampling == Sampling.TWO) {
-                sleep(500);
-                DriveRobotPosition(1, -24);
+                DriveRobotTurn(.4, 35);
+            DriveRobotPosition(.4, 33);
+            if (sampling == Sampling.TWO || startposition == StartPosition.GOLD
+                    || (startposition == StartPosition.SILVER && depot == Depot.YES)) {
+                sleep(100);
+                DriveRobotPosition(.4, -33);
                 if (gold == Gold.LEFT)
-                    DriveRobotTurn(.7, 35);
+                    DriveRobotTurn(.4, 35);
                 else if (gold == Gold.RIGHT)
-                    DriveRobotTurn(.7, -35);
+                    DriveRobotTurn(.4, -35);
             }
         } else {
             DriveRobotPosition(1, 20);
@@ -547,7 +590,7 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
      * @param power Power level
      * @param degrees Degrees of rotation
      */
-    void PivotArmSetRotation(double power, double degrees)
+    void PivotArmSetRotation(double power, double degrees, boolean unlatch)
     {
         int position = (int)(degrees* PIVOTARM_CONSTANT);
         robot.pivotArm1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -558,6 +601,11 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
         robot.pivotArm2.setPower(power);
         robot.pivotArm1.setTargetPosition(position);
         robot.pivotArm2.setTargetPosition(position);
+        if (unlatch) {
+            sleep(200);
+            robot.extensionLock.setPosition(.5);
+            ExtendoArm5000_UNLATCH();
+        }
         for (int i=0; i < 5; i++) {    // Repeat check 5 times, sleeping 10ms between,
             // as isBusy can be a bit unreliable
             while (robot.pivotArm1.isBusy() && robot.pivotArm2.isBusy()) {
@@ -711,6 +759,12 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
             if (tfod != null) {
                 tfod.shutdown();
             }
+        }
+        if (hanging == Lift.YES) {
+            if (gold==Gold.RIGHT)
+                gold=Gold.LEFT;
+            else if (gold==Gold.LEFT)
+                gold=Gold.RIGHT;
         }
     }
 

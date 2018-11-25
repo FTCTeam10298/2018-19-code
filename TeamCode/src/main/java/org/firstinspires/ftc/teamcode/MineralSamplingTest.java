@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -43,6 +44,7 @@ import java.util.List;
  * Additionally, the centers of the bounding rectangles of the contours are sent to telemetry.
  */
 @TeleOp(name="MineralSamplingTest")
+@Disabled
 public class MineralSamplingTest extends OpMode {
     private MineralSampling mineralSampling;
 

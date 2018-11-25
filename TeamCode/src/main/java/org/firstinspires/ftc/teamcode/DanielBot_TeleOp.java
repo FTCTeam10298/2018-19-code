@@ -83,7 +83,7 @@ public class DanielBot_TeleOp extends OpMode {
     public void loop() {
 
         // Send telemetry message to signify robot running
-        telemetry.addData("Say", "STK is the gr8est without deb8");
+        telemetry.addData("Say", "N8 is the gr8est without deb8");
 
         if (gamepad1.dpad_up || gamepad2.dpad_up) {
             DrivePowerAll(.5);
