@@ -23,8 +23,6 @@ public class DanielBot_Hardware
     public DcMotor pivotArm1 = null;
     public DcMotor pivotArm2 = null;
     public DcMotor collectOtron       = null;
-//    public CRServo blahCR             = null;
-//    public Servo   blah               = null;
     public Servo   extensionLock      = null;
     public Servo   pivotLock          = null;
 
@@ -110,37 +108,6 @@ public class DanielBot_Hardware
         extensionLock.setPosition(1);
         pivotLock.setPosition(.5);
 
-//        blahCR = hwMap.crservo.get("cr_servo");
-//        blahCR.setPower(0);
-//        blahCR.setDirection(CRServo.Direction.FORWARD);
-    }
-
-    /**
-     * PivotArmSetRotation
-     * Positive swings back
-     * @param power Power level
-     * @param degrees Degrees of rotation
-     */
-    void PivotArmSetRotation(double power, double degrees)
-    {
-        int position = (int)(degrees* PIVOTARM_CONSTANT);
-        pivotArm1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        pivotArm2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        pivotArm1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        pivotArm2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        pivotArm1.setPower(power);
-        pivotArm2.setPower(power);
-        pivotArm1.setTargetPosition(position);
-        pivotArm2.setTargetPosition(position);
-        for (int i=0; i < 5; i++) {    // Repeat check 5 times, sleeping 10ms between,
-            // as isBusy can be a bit unreliable
-            while (pivotArm1.isBusy() && pivotArm2.isBusy()) {
-                //dashboard.displayPrintf(10, "The ENEMY gates are down!");
-            }
-            sleep(10);
-        }
-        pivotArm1.setPower(0);
-        pivotArm2.setPower(0);
     }
 
     /**

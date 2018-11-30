@@ -38,7 +38,6 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
-import org.opencv.core.Mat;
 
 import ftclib.FtcChoiceMenu;
 import ftclib.FtcMenu;
@@ -79,7 +78,8 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
 
     public enum Crater {
         NEAR,
-        FAR
+        FAR,
+        NONE
     }
 
     public enum Depot {
@@ -151,7 +151,7 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
 
         dashboard.displayPrintf(0, "Status: Ready to start");
 
-//        //Auto test
+//        //Motor test (Uncomment out to test drive train encoders)
 //        robot.backRightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 //        robot.backLeftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 //        robot.frontRightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -182,7 +182,11 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
 //            sleep(10);
 //        }
 //
-//        sleep(50000);
+//
+//        //test spin
+//        DriveRobotTurn(.3, 360);
+//        sleep(1000);
+//        DriveRobotTurn(.3, -360);
 
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
@@ -203,15 +207,10 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
                 //robot.pivotLock.setPosition(.5);
                 //PivotArmUnlock();
                 PivotArmSetRotation(.5, -19, false);
-                sleep(50);
                 PivotArmSetRotation(.5, 95, true);
-                sleep(50);
                 ExtendoArm5000_ACTIVATE(.5, 5);
-                sleep(50);
-                DriveRobotPosition(.5, 3);
-                sleep(50);
-                ExtendoArm5000_ACTIVATE(.3, -6);
-                sleep(50);
+                DriveRobotPosition(.5, 6);
+                ExtendoArm5000_ACTIVATE(.3, -8);
                 PivotArmSetRotation(1, -85, false);
             } else {
                 DriveRobotPosition(1, -3);
@@ -233,29 +232,29 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
                     && crater == Crater.NEAR) {
                 DriveRobotPosition(1, 16);
             }
-            else if (depot == Depot.YES) {
+            else if (depot == Depot.YES && crater != Crater.NONE) {
                 DriveRobotPosition(.5, 10);
                 if (startposition == StartPosition.GOLD && crater == Crater.NEAR)
                     DriveRobotTurn(.3, 90);
                 else if (startposition == StartPosition.SILVER ||
                         (startposition == StartPosition.GOLD && crater == Crater.FAR))
-                    DriveRobotTurn(.3, -80);
-                sleep(50);
-                DriveRobotPosition(.5, 35);
-                sleep(50);
+                    DriveRobotTurn(.3, -90);
+                DriveRobotPosition(.5, 38.5);
                 if (startposition == StartPosition.GOLD && crater == Crater.FAR)
-                    DriveRobotTurn(.3, 45);
-                else if ((startposition == StartPosition.GOLD && crater == Crater.NEAR) ||
-                        (startposition == StartPosition.SILVER))
+                    DriveRobotTurn(.3, 135);
+                else if (startposition == StartPosition.GOLD && crater == Crater.NEAR)
+                    DriveRobotTurn(.3, -135);
+                else
                     DriveRobotTurn(.3, -45);
-                sleep(50);
-                if (startposition == StartPosition.SILVER ||
-                        startposition == StartPosition.GOLD && crater == Crater.NEAR) {
+                if (startposition == StartPosition.GOLD && crater == Crater.NEAR) {
                     DriveSidewaysTime(1, -1); //right
                     DriveRobothug(1, 50, false);
                 } else if (startposition == StartPosition.GOLD && crater == Crater.FAR) {
                     DriveSidewaysTime(1, 1); //left
                     DriveRobothug(1, 50, true);
+                } else if (startposition == StartPosition.SILVER) {
+                    DriveSidewaysTime(1, -1); //right
+                    DriveRobothug(1, 40, false);
                 }
                 robot.collectOtron.setPower(1);
                 sleep(800);
@@ -268,7 +267,7 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
                     } else if (startposition == StartPosition.GOLD && crater == Crater.FAR) {
                         DriveSidewaysTime(1, 1); //left
                     }
-                    DriveRobotPosition(1, -22.5);
+                    DriveRobotPosition(.6, -22.5);
                 }
                 else {//im here FIXME rest of Drive my Car (Beep Beep, Beep Beep, Yeah)
                     DriveRobothug(1, -30, false);
@@ -281,6 +280,25 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
                     DriveSample();
                     DriveRobotPosition(1, 26);
                 }
+            }
+            else if (crater == Crater.NONE && depot == Depot.YES) {
+                if (gold == Gold.CENTER)
+                    DriveRobotPosition(.5, 36);
+                else {
+                    if (gold == Gold.LEFT)
+                        DriveRobotTurn(.3, -45);
+                    else
+                        DriveRobotTurn(.3, 45);
+                    DriveRobotPosition(.5, 52);
+                    if (gold == Gold.LEFT)
+                        DriveRobotTurn(.3, 90);
+                    else
+                        DriveRobotTurn(.3, -90);
+                    DriveRobotPosition(.5, 52);
+                }
+                robot.collectOtron.setPower(1);
+                sleep(800);
+                robot.collectOtron.setPower(0);
             }
 
         }
@@ -374,6 +392,9 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
     {
 //        double position = degree*DRIVE_GEAR_REDUCTION*15.2; // FIXME: Magic number
         double position = degree*COUNTS_PER_INCH*0.20672; // FIXME: Magic number
+        //left turns overshoot
+        if (degree > 0)
+            position *= .9;
 
         robot.frontLeftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         robot.frontRightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -397,54 +418,6 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
 
         for (int i=0; i < 5; i++) {    // Repeat check 5 times, sleeping 10ms between,
                                        // as isBusy can be a bit unreliable
-            while (robot.frontLeftDrive.isBusy() && robot.frontRightDrive.isBusy() && robot.backLeftDrive.isBusy()
-                    && robot.backRightDrive.isBusy()) {
-                dashboard.displayPrintf(3, "Left front encoder: %d", robot.frontLeftDrive.getCurrentPosition());
-                dashboard.displayPrintf(4, "Right front encoder: %d", robot.frontRightDrive.getCurrentPosition());
-                dashboard.displayPrintf(5, "Left back encoder: %d", robot.frontLeftDrive.getCurrentPosition());
-                dashboard.displayPrintf(6, "Right back encoder %d", robot.backRightDrive.getCurrentPosition());
-            }
-            sleep(10);
-        }
-
-        DrivePowerAll(0);
-    }
-
-    void DriveRobotSideways (double power, double inches)
-    {
-        double position = inches*COUNTS_PER_INCH * 2;
-
-        robot.frontLeftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.frontRightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.backLeftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.backRightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        robot.frontLeftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.frontRightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.backLeftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.backRightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        if (power > 0) // Drive right
-        {
-            robot.frontLeftDrive.setTargetPosition((int)-position);
-            robot.backLeftDrive.setTargetPosition((int)position);
-            robot.backRightDrive.setTargetPosition((int)-position);
-            robot.frontRightDrive.setTargetPosition((int)position);
-        }
-        else // Drive left
-        {
-            robot.frontRightDrive.setTargetPosition((int)position);
-            robot.backRightDrive.setTargetPosition((int)-position);
-            robot.backLeftDrive.setTargetPosition((int)position);
-            robot.frontLeftDrive.setTargetPosition((int)-position);
-        }
-        robot.frontRightDrive.setPower(power);
-        robot.backRightDrive.setPower(power);
-        robot.backLeftDrive.setPower(power);
-        robot.frontLeftDrive.setPower(power);
-
-        for (int i=0; i < 5; i++) {    // Repeat check 5 times, sleeping 10ms between,
-            // as isBusy can be a bit unreliable
             while (robot.frontLeftDrive.isBusy() && robot.frontRightDrive.isBusy() && robot.backLeftDrive.isBusy()
                     && robot.backRightDrive.isBusy()) {
                 dashboard.displayPrintf(3, "Left front encoder: %d", robot.frontLeftDrive.getCurrentPosition());
@@ -562,18 +535,18 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
     void DriveSample () {
         if (gold != Gold.CENTER) {
             if (gold == Gold.LEFT)
-                DriveRobotTurn(.4, -35);
+                DriveRobotTurn(.3, -35);
             else if (gold == Gold.RIGHT)
-                DriveRobotTurn(.4, 35);
-            DriveRobotPosition(.4, 33);
+                DriveRobotTurn(.3, 35);
+            DriveRobotPosition(.3, 28);
             if (sampling == Sampling.TWO || startposition == StartPosition.GOLD
                     || (startposition == StartPosition.SILVER && depot == Depot.YES)) {
-                sleep(100);
-                DriveRobotPosition(.4, -33);
+                sleep(50);
+                DriveRobotPosition(.3, -28);
                 if (gold == Gold.LEFT)
-                    DriveRobotTurn(.4, 35);
+                    DriveRobotTurn(.3, 35);
                 else if (gold == Gold.RIGHT)
-                    DriveRobotTurn(.4, -35);
+                    DriveRobotTurn(.3, -35);
             }
         } else {
             DriveRobotPosition(1, 20);
@@ -606,44 +579,13 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
             robot.extensionLock.setPosition(.5);
             ExtendoArm5000_UNLATCH();
         }
-        for (int i=0; i < 5; i++) {    // Repeat check 5 times, sleeping 10ms between,
+        for (int i=0; i < 2; i++) {    // Repeat check 5 times, sleeping 10ms between,
             // as isBusy can be a bit unreliable
             while (robot.pivotArm1.isBusy() && robot.pivotArm2.isBusy()) {
                 dashboard.displayPrintf(10, "The ENEMY gates are down!");
             }
             sleep(10);
         }
-        robot.pivotArm1.setPower(0);
-        robot.pivotArm2.setPower(0);
-    }
-
-    /**
-     * PivotArmUnlock
-     */
-    void PivotArmUnlock()
-    {
-        robot.pivotArm1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.pivotArm2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.pivotArm1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        robot.pivotArm2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        robot.pivotArm1.setPower(1);
-        robot.pivotArm2.setPower(1);
-        sleep(150);
-        robot.pivotArm1.setPower(-1);
-        robot.pivotArm2.setPower(-1);
-        sleep(150);
-        robot.pivotArm1.setPower(1);
-        robot.pivotArm2.setPower(1);
-        sleep(150);
-        robot.pivotArm1.setPower(-1);
-        robot.pivotArm2.setPower(-1);
-        sleep(150);
-        robot.pivotArm1.setPower(1);
-        robot.pivotArm2.setPower(1);
-        sleep(150);
-        robot.pivotArm1.setPower(-1);
-        robot.pivotArm2.setPower(-1);
-        sleep(150);
         robot.pivotArm1.setPower(0);
         robot.pivotArm2.setPower(0);
     }
@@ -661,13 +603,8 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
         robot.extendoArm5000.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         robot.extendoArm5000.setPower(power);
         robot.extendoArm5000.setTargetPosition(position);
-        for (int i=0; i < 5; i++) {    // Repeat check 5 times, sleeping 10ms between,
-            // as isBusy can be a bit unreliable
-            while (robot.extendoArm5000.isBusy()) {
-                dashboard.displayPrintf(10, "Don't fire at the ENEMY until you see the whites of their eyes!");
-            }
-            sleep(10);
-        }
+        while (robot.extendoArm5000.isBusy())
+            dashboard.displayPrintf(10, "Don't fire at the ENEMY until you see the whites of their eyes!");
         robot.extendoArm5000.setPower(0);
     }
 
@@ -797,19 +734,6 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
         tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABEL_GOLD_MINERAL, LABEL_SILVER_MINERAL);
     }
 
-    /**
-     * Samples a random mineral
-     */
-    void randomMineral () {
-        double random = Math.random();
-        if (random < (1 / 3))
-            gold = Gold.LEFT;
-        else if (random < (2 / 3))
-            gold = Gold.CENTER;
-        else
-            gold = Gold.RIGHT;
-    }
-
 
     // MENU ----------------------------------------------------------------------------------------
     @Override
@@ -853,6 +777,7 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
 
         craterMenu.addChoice("Near", Crater.NEAR, true);
         craterMenu.addChoice("Far", Crater.FAR, false);
+        craterMenu.addChoice("None", Crater.NONE, false);
 
         FtcMenu.walkMenuTree(modeMenu, this);
         runmode = modeMenu.getCurrentChoiceObject();

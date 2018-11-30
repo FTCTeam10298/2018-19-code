@@ -245,14 +245,6 @@ public class DanielBot_TeleOp extends OpMode {
         robot.backLeftDrive.setPower(power);
     }
 
-    void DriveRobotTurn (double power)
-    {
-        robot.frontLeftDrive.setPower(-power);
-        robot.frontRightDrive.setPower(power);
-        robot.backRightDrive.setPower(power);
-        robot.backLeftDrive.setPower(-power);
-    }
-
     void DriveSideways (double power)
     {
         if (power > 0) // Drive right
