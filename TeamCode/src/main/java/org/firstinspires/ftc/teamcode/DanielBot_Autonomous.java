@@ -208,10 +208,13 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
                 //PivotArmUnlock();
                 PivotArmSetRotation(.5, -19, false);
                 PivotArmSetRotation(.5, 95, true);
-                ExtendoArm5000_ACTIVATE(.5, 5);
+                ExtendoArm5000_ACTIVATE_TIME(.1, 1000);
+                DriveRobotPosition(.5, -4);
+                DriveRobotPosition(.25, 2);
+                ExtendoArm5000_ACTIVATE(.5, 3);
                 DriveRobotPosition(.5, 6);
-                ExtendoArm5000_ACTIVATE(.3, -8);
-                PivotArmSetRotation(1, -85, false);
+                ExtendoArm5000_ACTIVATE(.3, -7);
+                PivotArmSetRotation(1, -90, false);
             } else {
                 DriveRobotPosition(1, -3);
                 sleep(300);
@@ -246,15 +249,16 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
                     DriveRobotTurn(.3, -135);
                 else
                     DriveRobotTurn(.3, -45);
+                DriveRobotPosition(.5, 3);
                 if (startposition == StartPosition.GOLD && crater == Crater.NEAR) {
                     DriveSidewaysTime(1, -1); //right
-                    DriveRobothug(1, 50, false);
+                    DriveRobothug(1, 47, false);
                 } else if (startposition == StartPosition.GOLD && crater == Crater.FAR) {
                     DriveSidewaysTime(1, 1); //left
-                    DriveRobothug(1, 50, true);
+                    DriveRobothug(1, 47, true);
                 } else if (startposition == StartPosition.SILVER) {
                     DriveSidewaysTime(1, -1); //right
-                    DriveRobothug(1, 40, false);
+                    DriveRobothug(1, 37, false);
                 }
                 robot.collectOtron.setPower(1);
                 sleep(800);
@@ -605,6 +609,21 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
         robot.extendoArm5000.setTargetPosition(position);
         while (robot.extendoArm5000.isBusy())
             dashboard.displayPrintf(10, "Don't fire at the ENEMY until you see the whites of their eyes!");
+        robot.extendoArm5000.setPower(0);
+    }
+
+    /**
+     * ExtendoArm_ACTIVATE ACTIVATES the ExtendoArm
+     * Positive extends
+     * @param power
+     * @param time
+     */
+    void ExtendoArm5000_ACTIVATE_TIME (double power, int time)
+    {
+        robot.extendoArm5000.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.extendoArm5000.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.extendoArm5000.setPower(power);
+        sleep(time);
         robot.extendoArm5000.setPower(0);
     }
 
