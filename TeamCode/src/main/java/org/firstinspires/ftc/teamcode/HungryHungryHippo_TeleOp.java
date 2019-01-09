@@ -45,12 +45,10 @@ import org.firstinspires.ftc.robotcontroller.external.samples.HardwarePushbot;
  *
  * This particular OpMode executes a basic Tank Drive Teleop for a Hungry Hungry Hippo
  * It opens and closes the mouth using the left and right bumper buttons.
- *
- * Use Android Studios to Copy this Class, and Paste it into your team's code folder with a new name.
- * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
 @TeleOp(name="Hungry Hungry Hippo", group="HungryHippo")
+@Disabled
 public class HungryHungryHippo_TeleOp extends OpMode {
 
     /* Declare OpMode members. */

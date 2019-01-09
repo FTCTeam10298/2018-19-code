@@ -29,6 +29,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -48,6 +49,7 @@ import java.lang.Math;
 import java.util.List;
 
 @Autonomous(name="DanielBot Autonomous", group ="DanielBot")
+@Disabled
 public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuButtons {
     public enum StartPosition {
         SILVER,

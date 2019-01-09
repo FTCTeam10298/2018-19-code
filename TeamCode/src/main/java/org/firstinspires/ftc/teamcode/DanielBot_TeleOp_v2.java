@@ -59,11 +59,8 @@ public class DanielBot_TeleOp_v2 extends OpMode {
     boolean collectOtronSWITCHING  = false;
     boolean collectOtronREVERSE    = false;
 
-    boolean pivotLockSWITCHING     = false;
-    boolean pivotLockENGAGED       = false;
-
-    boolean extensionLockSWITCHING = false;
-    boolean extensionLockENGAGED   = false;
+//    boolean pivotLockSWITCHING     = false;
+//    boolean pivotLockENGAGED       = false;
 
     // Code to run once when the driver hits INIT
     @Override
@@ -202,34 +199,26 @@ public class DanielBot_TeleOp_v2 extends OpMode {
         else
             robot.collectOtron.setPower(0);
 
-        // Pivot lock
-        if (gamepad1.x || gamepad2.x)
-            pivotLockSWITCHING = true;
-        else if (pivotLockSWITCHING) {
-            pivotLockSWITCHING = false;
-            if (pivotLockENGAGED) {
-                pivotLockENGAGED = false;
-                robot.pivotLock.setPosition(.5);
-            }
-            else {
-                pivotLockENGAGED = true;
-                robot.pivotLock.setPosition(1);
-            }
-        }
+//        // Pivot lock
+//        if (gamepad1.x || gamepad2.x)
+//            pivotLockSWITCHING = true;
+//        else if (pivotLockSWITCHING) {
+//            pivotLockSWITCHING = false;
+//            if (pivotLockENGAGED) {
+//                pivotLockENGAGED = false;
+//                robot.pivotLock.setPosition(.5);
+//            }
+//            else {
+//                pivotLockENGAGED = true;
+//                robot.pivotLock.setPosition(1);
+//            }
+//        }
 
-        // Extension lock
+        // Collector lid
         if (gamepad1.b || gamepad2.b)
-            extensionLockSWITCHING = true;
-        else if (extensionLockSWITCHING) {
-            extensionLockSWITCHING = false;
-            if (extensionLockENGAGED) {
-                extensionLockENGAGED = false;
-                robot.extensionLock.setPosition(1);
-            }
-            else {
-                extensionLockENGAGED = true;
-                robot.extensionLock.setPosition(.2);
-            }
+            robot.extensionLock.setPosition(.2);
+        else {
+            robot.extensionLock.setPosition(1);
         }
 
     }
