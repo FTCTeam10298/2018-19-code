@@ -134,8 +134,8 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
     public void runOpMode() {
         // Initialize the hardware -----------------------------------------------------------------
         robot.init(hardwareMap);
-        //robot.pivotLock.setPosition(1);
-        robot.extensionLock.setPosition(1);
+        //robot.extensionLock.setPosition(.9); // Already done in hardware config
+
         // Initialize dashboard --------------------------------------------------------------------
         dashboard = HalDashboard.createInstance(telemetry);
 
@@ -225,7 +225,7 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
             if (hanging == Lift.YES) {
                 //robot.pivotLock.setPosition(.5);
                 //PivotArmUnlock();
-                PivotArmSetRotation(.5, -17, false);
+                PivotArmSetRotation(.5, -20, false);
                 PivotArmSetRotation(.5, 95, true);
                 DriveRobotPosition(.25, 8);
                 PivotArmSetRotation(1, -90, false);
@@ -252,39 +252,62 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
             else if (depot == Depot.YES && crater != Crater.NONE) {
                 DriveRobotPosition(.5, 10);
                 if (startposition == StartPosition.GOLD && crater == Crater.NEAR)
-                    DriveRobotTurn(.3, 90);
+                    DriveRobotTurn(.2, 90);
                 else if (startposition == StartPosition.SILVER ||
                         (startposition == StartPosition.GOLD && crater == Crater.FAR))
                     DriveRobotTurn(.3, -90);
-                DriveRobotPosition(.5, 38.5);
+                DriveRobotPosition(.5, 50);
                 if (startposition == StartPosition.GOLD && crater == Crater.FAR)
-                    DriveRobotTurn(.3, 135);
+                    DriveRobotTurn(.3, 145);
                 else if (startposition == StartPosition.GOLD && crater == Crater.NEAR)
-                    DriveRobotTurn(.3, -135);
+                    DriveRobotTurn(.3, -145);
                 else
-                    DriveRobotTurn(.3, -45);
-                DriveRobotPosition(.5, 3);
+                    DriveRobotTurn(.3, -30);
+                //DriveRobotPosition(.5, 3);
                 if (startposition == StartPosition.GOLD && crater == Crater.NEAR) {
-                    DriveSidewaysTime(1, -1); //right
+                    //DriveSidewaysTime(1, -1); // Strafe right
                     DriveRobothug(1, 47, false);
                 } else if (startposition == StartPosition.GOLD && crater == Crater.FAR) {
-                    DriveSidewaysTime(2, 1); //left
+                    //DriveSidewaysTime(2, 1); // Strafe left
                     DriveRobothug(1, 47, true);
                 } else if (startposition == StartPosition.SILVER) {
-                    DriveSidewaysTime(2, -1); //right
-                    DriveRobothug(1, 32, false);
+                    //DriveSidewaysTime(2, -1); // Strafe right
+                    DriveRobothug(1, 38, false);
                 }
+
+                // Deposit team marker
+                PivotArmSetRotation(1, 25, false);
                 robot.collectOtron.setPower(-1);
-                sleep(800);
+                sleep(2000);
                 robot.collectOtron.setPower(0);
+
                 if (sampling == Sampling.ONE) {
                     DriveRobotPosition(1, -50);
                     if (startposition == StartPosition.SILVER ||
                             (startposition == StartPosition.GOLD && crater == Crater.NEAR && gold != Gold.LEFT)) {
-                        DriveSidewaysTime(1, -1); //right
+                        DriveSidewaysTime(1, -1); // Strafe right
                     } else if (startposition == StartPosition.GOLD && ((crater == Crater.NEAR && gold == Gold.LEFT) || crater == Crater.FAR)) {
-                        DriveSidewaysTime(1, 1); //left
+                        DriveSidewaysTime(1, 1); // Strafe left
                     }
+                    DriveRobotPosition(.6, -25);
+                }
+                else if (sampling == Sampling.TWO && startposition == StartPosition.SILVER) {
+                    // Line up to back side of second sampling field
+                    DriveRobotTurn(1, -90);
+                    DriveRobotPosition(1, 12);
+                    DriveRobotTurn(1, -45);
+
+                    // Sample
+                    DriveSample();
+
+                    // Return to original position-ish
+                    DriveRobotTurn(1, 45);
+                    DriveRobotPosition(1, 8);
+                    DriveRobotTurn(1, 80);
+
+                    // Drive back
+                    DriveRobotPosition(1, -50);
+                    DriveSidewaysTime(1, -1); // Strafe right
                     DriveRobotPosition(.6, -25);
                 }
                 else {//im here FIXME rest of Drive my Car (Beep Beep, Beep Beep, Yeah)
@@ -320,9 +343,9 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
             }
 
         }
-        if (DoTask("Park", runmode)) {
-
-        }
+//        if (DoTask("Park", runmode)) {
+//
+//        }
 
     }
 
@@ -556,22 +579,22 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
                 DriveRobotTurn(.3, -35);
             else if (gold == Gold.RIGHT)
                 DriveRobotTurn(.3, 35);
-            DriveRobotPosition(.3, 28);
+            DriveRobotPosition(.3, 24);
             if (sampling == Sampling.TWO || startposition == StartPosition.GOLD
                     || (startposition == StartPosition.SILVER && depot == Depot.YES)) {
                 sleep(50);
-                DriveRobotPosition(.3, -28);
+                DriveRobotPosition(.3, -24);
                 if (gold == Gold.LEFT)
                     DriveRobotTurn(.3, 35);
                 else if (gold == Gold.RIGHT)
                     DriveRobotTurn(.3, -35);
             }
-        } else {
-            DriveRobotPosition(1, 20);
+        } else { // gold == Gold.CENTER
+            DriveRobotPosition(.3, 20);
             sleep(500);
             if (!(depot == Depot.NO && (sampling == Sampling.ONE || sampling == Sampling.ZERO)
                     && crater == Crater.NEAR))
-                DriveRobotPosition(1, -20);
+                DriveRobotPosition(.3, -20);
         }
     }
 

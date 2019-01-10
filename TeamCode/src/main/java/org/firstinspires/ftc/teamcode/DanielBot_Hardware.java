@@ -103,11 +103,10 @@ public class DanielBot_Hardware
 
         // Define and initialize all installed servos
         extensionLock = hwMap.servo.get("extension_lock");
-        pivotLock     = hwMap.servo.get("pivot_lock");
+        //pivotLock     = hwMap.servo.get("pivot_lock");
 
-        extensionLock.setPosition(1);
-        pivotLock.setPosition(.5);
-
+        extensionLock.setPosition(.9);
+        //pivotLock.setPosition(.5);
     }
 
     /**
