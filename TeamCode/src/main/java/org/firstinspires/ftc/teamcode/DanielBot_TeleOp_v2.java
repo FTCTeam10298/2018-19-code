@@ -186,13 +186,7 @@ public class DanielBot_TeleOp_v2 extends OpMode {
             collectOtronREVERSE = false;
 
         if (collectOtronACTIVE && !collectOtronREVERSE) {
-            if (gamepad1.start || gamepad2.start) {
-                robot.collectOtron.setPower(1);
-            }
-            else
-            {
-                robot.collectOtron.setPower(.6);
-            }
+            robot.collectOtron.setPower(1);
         }
         else if (collectOtronACTIVE)
             robot.collectOtron.setPower(-1);
