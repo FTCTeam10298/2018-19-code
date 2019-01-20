@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 public class DanielBot_Hardware
 {
     // Constant that converts the pivot arm position to degrees (1120*10/360)
-    static final double PIVOTARM_CONSTANT = 280 / 9;
+    static final double PIVOTARM_CONSTANT = 280.0 / 9.0;
 
     /* Public OpMode members. */
     public DcMotor frontLeftDrive     = null;
@@ -120,6 +120,63 @@ public class DanielBot_Hardware
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
+    }
+
+    /**
+     * DrivePowerAll sets all of the drive train motors to the specified power level.
+     * @param power Power level to set all motors to
+     */
+    void DrivePowerAll (double power)
+    {
+        driveSetPower(power, power, power, power);
+    }
+
+    /**
+     * driveSetPower sets all of the drive train motors to the specified power levels.
+     * @param flPower Power level to set front left motor to
+     * @param frPower Power level to set front right motor to
+     * @param blPower Power level to set back left motor to
+     * @param brPower Power level to set back right motor to
+     */
+    void driveSetPower (double flPower, double frPower, double blPower, double brPower)
+    {
+        frontLeftDrive.setPower(flPower);
+        frontRightDrive.setPower(frPower);
+        backLeftDrive.setPower(blPower);
+        backRightDrive.setPower(brPower);
+    }
+
+    /**
+     * driveSetMode sets all of the drive train motors to the specified mode.
+     * @param runmode RunMode to set motors to
+     */
+    void driveSetMode(DcMotor.RunMode runmode)
+    {
+        frontLeftDrive.setMode(runmode);
+        frontRightDrive.setMode(runmode);
+        backLeftDrive.setMode(runmode);
+        backRightDrive.setMode(runmode);
+    }
+
+    /**
+     * driveSetMode sets all of the drive train motors to the specified positions.
+     * @param flPosition Position to set front left motor to run to
+     * @param frPosition Position to set front right motor to run to
+     * @param blPosition Position to set back left motor to run to
+     * @param brPosition Position to set back right motor to run to
+     */
+    void driveSetTargetPosition(int flPosition, int frPosition, int blPosition, int brPosition)
+    {
+        frontLeftDrive.setTargetPosition(flPosition);
+        frontRightDrive.setTargetPosition(frPosition);
+        backLeftDrive.setTargetPosition(blPosition);
+        backRightDrive.setTargetPosition(brPosition);
+    }
+
+    boolean driveAllAreBusy()
+    {
+        return frontLeftDrive.isBusy() && frontRightDrive.isBusy() && backLeftDrive.isBusy()
+                && backRightDrive.isBusy();
     }
 }
 

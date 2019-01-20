@@ -48,6 +48,8 @@ import ftclib.FtcMenu;
 import ftclib.FtcValueMenu;
 import hallib.HalDashboard;
 
+import static java.lang.Math.abs;
+
 @Autonomous(name="DanielBot Autonomous v2", group ="DanielBot")
 public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.MenuButtons {
     public enum StartPosition {
@@ -111,9 +113,10 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
     static final double DRIVETRAIN_ERROR      = 1.04;      // Error determined from testing
     static final double COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * GEARBOX_RATIO * DRIVE_GEAR_REDUCTION) /
             (WHEEL_DIAMETER_INCHES * Math.PI) / DRIVETRAIN_ERROR;
+    static final double COUNTS_PER_DEGREE     = COUNTS_PER_INCH*0.20672; // Found by testing
 
-    static final double PIVOTARM_CONSTANT = 280 / 9; //constant that converts liftonator to degrees (1120*10/360)
-    static final double EXTENDOARM_CONSTANT = 1120 * 2 / (3 * Math.PI); //constant that converts ExtendoArm to inches 1120 * 2/(3 * 3.14159265)
+    static final double PIVOTARM_CONSTANT = 280.0 / 9.0; // Constant that converts pivot arm to degrees (1120*10/360)
+    static final double EXTENDOARM_CONSTANT = 1120 * 2 / (3 * Math.PI); // Constant that converts ExtendoArm to inches 1120 * 2/(3 * 3.14159265)
 
     ModernRoboticsI2cRangeSensor rangeSensor;
 
@@ -281,13 +284,13 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
                 //DriveRobotPosition(.5, 3);
                 if (startposition == StartPosition.GOLD && crater == Crater.NEAR) {
                     //DriveSidewaysTime(1, -1); // Strafe right
-                    DriveRobothug(1, 47, false);
+                    DriveRobotHug(1, 47, false);
                 } else if (startposition == StartPosition.GOLD && crater == Crater.FAR) {
                     //DriveSidewaysTime(2, 1); // Strafe left
-                    DriveRobothug(1, 47, true);
+                    DriveRobotHug(1, 47, true);
                 } else if (startposition == StartPosition.SILVER) {
                     //DriveSidewaysTime(2, -1); // Strafe right
-                    DriveRobothug(1, 38, false);
+                    DriveRobotHug(1, 38, false);
                 }
 
                 // Deposit team marker
@@ -313,11 +316,23 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
                 else if (sampling == Sampling.TWO && startposition == StartPosition.SILVER) {
                     // Drive back varying amounts depending on sample
                     if (gold == Gold.LEFT)
-                        DriveRobotDistance(12, 1);
+                        DriveRobotDistanceToObject(12, 1);
                     else if (gold == Gold.CENTER)
-                        DriveRobotDistance(24, 1);
+                        DriveRobotDistanceToObject(24, 1);
                     else
-                        DriveRobotDistance(36, 1);
+                        DriveRobotDistanceToObject(36, 1);
+
+                    DriveRobotTurn(0.5, -90);
+
+                    // Extend arm and collect gold mineral
+                    robot.collectOtron.setPower(1);
+                    ExtendoArm5000_ACTIVATE(1, 30);
+                    ExtendoArm5000_ACTIVATE(1, -30);
+
+                    DriveRobotTurn(0.5, 85);
+
+                    DriveRobotDistanceToObject(1, 100);
+
 //                    // Line up to back side of second sampling field
 //                    DriveRobotTurn(1, -90);
 //                    DriveRobotPosition(1, 14);
@@ -337,7 +352,7 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
 //                    DriveRobotPosition(.6, -25);
                 }
                 else {//im here FIXME rest of Drive my Car (Beep Beep, Beep Beep, Yeah)
-                    DriveRobothug(1, -30, false);
+                    DriveRobotHug(1, -30, false);
                     DriveSidewaysTime(2, 1);
                     DriveRobotTurn(1, 135);
                     sleep(500);
@@ -408,20 +423,21 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
      */
     void DriveRobotTime(int ms, double power)
     {
-        DrivePowerAll(power);
+        robot.DrivePowerAll(power);
         sleep(ms);
-        DrivePowerAll(0);
+        robot.DrivePowerAll(0);
     }
 
     /**
-     * DriveRobotDistancer drives the robot the set number of inches at the given power level.
-     * @param inches How long to drive
-     * @param power Power level to set motors to, negative will drive the robot backwards
+     * DriveRobotDistanceToObject drives the robot to the set number of inches from an object
+     * (usually the wall) at the given power level.
+     * @param inches How many inches away to the object to go to
+     * @param power Power level to set motors to
      */
-    void DriveRobotDistance(int inches, double power)
+    void DriveRobotDistanceToObject(double power, double inches)
     {
-        int target = Math.round((float)rangeSensor.getDistance(DistanceUnit.INCH)) - inches;
-        DriveRobotPosition(power, target);
+        double target = (float)rangeSensor.getDistance(DistanceUnit.INCH) - inches; // FIXME: how accurate is sensor?
+        DriveRobotPosition(abs(power), target); // Use abs() to make sure power is positive
     }
 
     /**
@@ -429,21 +445,22 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
      * @param inches How far to drive, can be negative
      * @param power Power level to set motors to
      */
-    void DriveRobotPosition(double power, double inches)
+    void DriveRobotPosition(double power, double inches, boolean smart_accel)
     {
+        int state = 0; // 0 = NONE, 1 = ACCEL, 2 = DRIVE, 3 = DECEL
         double position = inches*COUNTS_PER_INCH;
 
-        robot.frontLeftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.frontRightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.backLeftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.backRightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.driveSetMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.driveSetMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        robot.frontLeftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.frontRightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.backLeftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.backRightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        DrivePowerAll(power);
+        if (smart_accel)
+        {
+            robot.DrivePowerAll(abs(power)/2); // Use abs() to make sure power is positive
+            state = 1; // ACCEL
+        }
+        else {
+            robot.DrivePowerAll(abs(power)); // Use abs() to make sure power is positive
+        }
 
         robot.frontLeftDrive.setTargetPosition((int)position);
         robot.frontRightDrive.setTargetPosition((int)position);
@@ -452,73 +469,127 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
 
         for (int i=0; i < 5; i++) {    // Repeat check 5 times, sleeping 10ms between,
                                        // as isBusy can be a bit unreliable
-            while (robot.frontLeftDrive.isBusy() && robot.frontRightDrive.isBusy() && robot.backLeftDrive.isBusy()
-                    && robot.backRightDrive.isBusy()) {
-                dashboard.displayPrintf(3, "Left front encoder: %d", robot.frontLeftDrive.getCurrentPosition());
-                dashboard.displayPrintf(4, "Right front encoder: %d", robot.frontRightDrive.getCurrentPosition());
-                dashboard.displayPrintf(5, "Left back encoder: %d", robot.frontLeftDrive.getCurrentPosition());
-                dashboard.displayPrintf(6, "Right back encoder %d", robot.backRightDrive.getCurrentPosition());
+            while (robot.driveAllAreBusy()) {
+                int flDrive = robot.frontLeftDrive.getCurrentPosition();
+                int frDrive = robot.frontRightDrive.getCurrentPosition();
+                int blDrive = robot.backLeftDrive.getCurrentPosition();
+                int brDrive = robot.backRightDrive.getCurrentPosition();
+                dashboard.displayPrintf(3, "Front left encoder: %d", flDrive);
+                dashboard.displayPrintf(4, "Front right encoder: %d", frDrive);
+                dashboard.displayPrintf(5, "Back left encoder: %d", blDrive);
+                dashboard.displayPrintf(6, "Back right encoder %d", brDrive);
+
+                // State magic
+                if (state == 1 &&
+                        (abs(flDrive) > COUNTS_PER_INCH ||
+                         abs(frDrive) > COUNTS_PER_INCH ||
+                         abs(blDrive) > COUNTS_PER_INCH ||
+                         abs(brDrive) > COUNTS_PER_INCH )) {
+                    // We have gone 1 inch, go to full power
+                    robot.DrivePowerAll(abs(power)); // Use abs() to make sure power is positive
+                    state = 2;
+                }
+                else if (state == 2 &&
+                        (abs(flDrive) > COUNTS_PER_INCH*(abs(inches)-1) ||
+                         abs(frDrive) > COUNTS_PER_INCH*(abs(inches)-1) ||
+                         abs(blDrive) > COUNTS_PER_INCH*(abs(inches)-1) ||
+                         abs(brDrive) > COUNTS_PER_INCH*(abs(inches)-1) )) {
+                    // Cut power by half to DECEL
+                    robot.DrivePowerAll(abs(power)/2); // Use abs() to make sure power is positive
+                    state = 3; // We are DECELing now
+                }
+                dashboard.displayPrintf(7, "State: %d (0=NONE,1=ACCEL,2=DRIVING,3=DECEL", state);
             }
             sleep(10);
         }
 
-        DrivePowerAll(0);
+        robot.DrivePowerAll(0);
+        // Clear used section of dashboard 
+        dashboard.displayText(3, "");
+        dashboard.displayText(4, "");
+        dashboard.displayText(5, "");
+        dashboard.displayText(6, "");
+        dashboard.displayText(7, "");
     }
 
-
-    void DriveRobotTurn (double power, double degree)
+    /** For compatibility */
+    void DriveRobotPosition(double power, double inches)
     {
-//        double position = degree*DRIVE_GEAR_REDUCTION*15.2; // FIXME: Magic number
-        double position = degree*COUNTS_PER_INCH*0.20672; // FIXME: Magic number
-        //left turns overshoot
+        DriveRobotPosition(power, inches, false);
+    }
+
+    void DriveRobotTurn (double power, double degree, boolean smart_accel)
+    {
+        double position = degree*COUNTS_PER_DEGREE;
+        //FIXME: left turns overshoot
         if (degree > 0)
             position *= .9;
 
-        robot.frontLeftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.frontRightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.backLeftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.backRightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        int state = 0; // 0 = NONE, 1 = ACCEL, 2 = DRIVE, 3 = DECEL
 
-        robot.frontLeftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.frontRightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.backLeftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.backRightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        robot.driveSetMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.driveSetMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        robot.frontLeftDrive.setPower(power);
-        robot.frontRightDrive.setPower(-power);
-        robot.backLeftDrive.setPower(power);
-        robot.backRightDrive.setPower(-power);
+        if (smart_accel) {
+            state = 1;
+            robot.driveSetPower(power*0.5, -power*0.5, power*0.5, -power*0.5);
+        }
+        else
+        {
+            robot.driveSetPower(power, -power, power, -power);
+        }
 
-        robot.frontLeftDrive.setTargetPosition((int)position);
-        robot.frontRightDrive.setTargetPosition(-(int)position);
-        robot.backLeftDrive.setTargetPosition((int)position);
-        robot.backRightDrive.setTargetPosition(-(int)position);
+        robot.driveSetTargetPosition((int)position, -(int)position, (int)position, -(int)position);
 
         for (int i=0; i < 5; i++) {    // Repeat check 5 times, sleeping 10ms between,
                                        // as isBusy can be a bit unreliable
-            while (robot.frontLeftDrive.isBusy() && robot.frontRightDrive.isBusy() && robot.backLeftDrive.isBusy()
-                    && robot.backRightDrive.isBusy()) {
-                dashboard.displayPrintf(3, "Left front encoder: %d", robot.frontLeftDrive.getCurrentPosition());
-                dashboard.displayPrintf(4, "Right front encoder: %d", robot.frontRightDrive.getCurrentPosition());
-                dashboard.displayPrintf(5, "Left back encoder: %d", robot.frontLeftDrive.getCurrentPosition());
-                dashboard.displayPrintf(6, "Right back encoder %d", robot.backRightDrive.getCurrentPosition());
+            while (robot.driveAllAreBusy()) {
+                int flDrive = robot.frontLeftDrive.getCurrentPosition();
+                int frDrive = robot.frontRightDrive.getCurrentPosition();
+                int blDrive = robot.backLeftDrive.getCurrentPosition();
+                int brDrive = robot.backRightDrive.getCurrentPosition();
+                dashboard.displayPrintf(3, "Front left encoder: %d", flDrive);
+                dashboard.displayPrintf(4, "Front right encoder: %d", frDrive);
+                dashboard.displayPrintf(5, "Back left encoder: %d", blDrive);
+                dashboard.displayPrintf(6, "Back right encoder %d", brDrive);
+
+                // State magic
+                if (state == 1 &&
+                        (abs(flDrive) > COUNTS_PER_DEGREE*10 ||
+                         abs(frDrive) > COUNTS_PER_DEGREE*10 ||
+                         abs(blDrive) > COUNTS_PER_DEGREE*10 ||
+                         abs(brDrive) > COUNTS_PER_DEGREE*10 )) {
+                    // We have rotated 10 degrees, go to full power
+                    robot.DrivePowerAll(abs(power)); // Use abs() to make sure power is positive
+                    state = 2;
+                }
+                else if (state == 2 &&
+                        (abs(flDrive) > COUNTS_PER_DEGREE*(abs(degree)-10) ||
+                         abs(frDrive) > COUNTS_PER_DEGREE*(abs(degree)-10) ||
+                         abs(blDrive) > COUNTS_PER_DEGREE*(abs(degree)-10) ||
+                         abs(brDrive) > COUNTS_PER_DEGREE*(abs(degree)-10) )) {
+                    // We are within 10 degrees of our destination, cut power by half to DECEL
+                    robot.DrivePowerAll(abs(power)/2); // Use abs() to make sure power is positive
+                    state = 3; // We are DECELing now
+                }
+                dashboard.displayPrintf(7, "State: %d (0=NONE,1=ACCEL,2=DRIVING,3=DECEL", state);
             }
             sleep(10);
         }
 
-        DrivePowerAll(0);
+        robot.DrivePowerAll(0);
+        // Clear used section of dashboard 
+        dashboard.displayText(3, "");
+        dashboard.displayText(4, "");
+        dashboard.displayText(5, "");
+        dashboard.displayText(6, "");
+        dashboard.displayText(7, "");
     }
 
-    /**
-     * DrivePowerAll sets all of the drive train motors to the specified power level.
-     * @param power Power level to set motors to
-     */
-    void DrivePowerAll (double power)
+    /** For compatibility */
+    void DriveRobotTurn (double power, double degree)
     {
-        robot.frontLeftDrive.setPower(power);
-        robot.frontRightDrive.setPower(power);
-        robot.backLeftDrive.setPower(power);
-        robot.backRightDrive.setPower(power);
+        DriveRobotTurn(power, degree, false);
     }
 
     /**
@@ -529,29 +600,13 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
      */
     void DriveSidewaysTime (double time, double power)
     {
-        robot.frontLeftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        robot.frontRightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        robot.backLeftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        robot.backRightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.driveSetMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.driveSetPower(-power, power, power, -power);
 
-        if (power > 0) // Drive left
-        {
-            robot.frontLeftDrive.setPower(-power);
-            robot.backLeftDrive.setPower(power);
-            robot.backRightDrive.setPower(-power);
-            robot.frontRightDrive.setPower(power);
-        }
-        else // Drive right
-        {
-            robot.frontRightDrive.setPower(power);
-            robot.backRightDrive.setPower(-power);
-            robot.backLeftDrive.setPower(power);
-            robot.frontLeftDrive.setPower(-power);
-        }
         // Continue driving for the specified amount of time, then stop
         double ms = time*1000;
         sleep((int)ms);
-        DrivePowerAll(0);
+        robot.DrivePowerAll(0);
     }
 
     /**
@@ -562,43 +617,26 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
      * @param inches How many inches to drive
      * @param hugLeft Whether to hug left or right
      */
-    void DriveRobothug (double power, int inches, boolean hugLeft)
+    void DriveRobotHug(double power, int inches, boolean hugLeft)
     {
         double position = inches*COUNTS_PER_INCH;
 
-        robot.frontLeftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.frontRightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.backRightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.backLeftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        robot.frontLeftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.frontRightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.backRightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.backLeftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        robot.driveSetMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.driveSetMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         if ((!hugLeft && inches > 0) || (hugLeft && inches < 0)) {
-            robot.frontLeftDrive.setPower(power*.9);
-            robot.frontRightDrive.setPower(power);
-            robot.backRightDrive.setPower(power*.9);
-            robot.backLeftDrive.setPower(power);
+            robot.driveSetPower(power*.9, power, power, power*.9);
         }
         else if ((!hugLeft && inches < 0) || (hugLeft && inches > 0))
         {
-            robot.frontLeftDrive.setPower(power);
-            robot.frontRightDrive.setPower(power*.9);
-            robot.backRightDrive.setPower(power);
-            robot.backLeftDrive.setPower(power*.9);
+            robot.driveSetPower(power, power*.9, power*.9, power);
         }
 
-        robot.frontLeftDrive.setTargetPosition((int)position);
-        robot.frontRightDrive.setTargetPosition((int)position);
-        robot.backRightDrive.setTargetPosition((int)position);
-        robot.backLeftDrive.setTargetPosition((int)position);
+        robot.driveSetTargetPosition((int)position, (int)position, (int)position, (int)position);
 
         for (int i=0; i < 5; i++) {    // Repeat check 5 times, sleeping 10ms between,
             // as isBusy can be a bit unreliable
-            while (robot.frontLeftDrive.isBusy() && robot.frontRightDrive.isBusy() && robot.backLeftDrive.isBusy()
-                    && robot.backRightDrive.isBusy()) {
+            while (robot.driveAllAreBusy()) {
                 dashboard.displayPrintf(3, "Left front encoder: %d", robot.frontLeftDrive.getCurrentPosition());
                 dashboard.displayPrintf(4, "Right front encoder: %d", robot.frontRightDrive.getCurrentPosition());
                 dashboard.displayPrintf(5, "Left back encoder: %d", robot.frontLeftDrive.getCurrentPosition());
@@ -607,7 +645,7 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
             sleep(10);
         }
 
-        DrivePowerAll(0);
+        robot.DrivePowerAll(0);
 
     }
 
@@ -636,32 +674,32 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
         }
     }
 
-    void DriveSampleInverted () {
-        robot.collectOtron.setPower(1);
-        if (gold != Gold.CENTER) {
-            if (gold == Gold.LEFT)
-                DriveRobotTurn(.3, 35);
-            else if (gold == Gold.RIGHT)
-                DriveRobotTurn(.3, -35);
-            DriveRobotPosition(.3, 24);
-            if (sampling == Sampling.TWO || startposition == StartPosition.GOLD
-                    || (startposition == StartPosition.SILVER && depot == Depot.YES)) {
-                sleep(50);
-                DriveRobotPosition(.3, -24);
-                if (gold == Gold.LEFT)
-                    DriveRobotTurn(.3, -35);
-                else if (gold == Gold.RIGHT)
-                    DriveRobotTurn(.3, 35);
-            }
-        } else { // gold == Gold.CENTER
-            DriveRobotPosition(.3, 20);
-            sleep(500);
-            if (!(depot == Depot.NO && (sampling == Sampling.ONE || sampling == Sampling.ZERO)
-                    && crater == Crater.NEAR))
-                DriveRobotPosition(.3, -20);
-        }
-        robot.collectOtron.setPower(0);
-    }
+//    void DriveSampleInverted () {
+//        robot.collectOtron.setPower(1);
+//        if (gold != Gold.CENTER) {
+//            if (gold == Gold.LEFT)
+//                DriveRobotTurn(.3, 35);
+//            else if (gold == Gold.RIGHT)
+//                DriveRobotTurn(.3, -35);
+//            DriveRobotPosition(.3, 24);
+//            if (sampling == Sampling.TWO || startposition == StartPosition.GOLD
+//                    || (startposition == StartPosition.SILVER && depot == Depot.YES)) {
+//                sleep(50);
+//                DriveRobotPosition(.3, -24);
+//                if (gold == Gold.LEFT)
+//                    DriveRobotTurn(.3, -35);
+//                else if (gold == Gold.RIGHT)
+//                    DriveRobotTurn(.3, 35);
+//            }
+//        } else { // gold == Gold.CENTER
+//            DriveRobotPosition(.3, 20);
+//            sleep(500);
+//            if (!(depot == Depot.NO && (sampling == Sampling.ONE || sampling == Sampling.ZERO)
+//                    && crater == Crater.NEAR))
+//                DriveRobotPosition(.3, -20);
+//        }
+//        robot.collectOtron.setPower(0);
+//    }
 
     /**
      * PivotArmSetRotation
@@ -681,12 +719,9 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
         robot.pivotArm1.setTargetPosition(position);
         robot.pivotArm2.setTargetPosition(position);
         if (unlatch) {
-            robot.frontLeftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            robot.frontRightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            robot.backLeftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            robot.backRightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            robot.driveSetMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-            DrivePowerAll(-.1);
+            robot.DrivePowerAll(-.1);
 
         }
         for (int i=0; i < 2; i++) {    // Repeat check 5 times, sleeping 10ms between,
@@ -698,7 +733,7 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
         }
         robot.pivotArm1.setPower(0);
         robot.pivotArm2.setPower(0);
-        DrivePowerAll(0);
+        robot.DrivePowerAll(0);
     }
 
     /**
@@ -720,7 +755,7 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
     }
 
     /**
-     * ExtendoArm_ACTIVATE ACTIVATES the ExtendoArm
+     * ExtendoArm_ACTIVATE_TIME ACTIVATES the ExtendoArm
      * Positive extends
      * @param power
      * @param time
@@ -731,28 +766,6 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
         robot.extendoArm5000.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         robot.extendoArm5000.setPower(power);
         sleep(time);
-        robot.extendoArm5000.setPower(0);
-    }
-
-    /**
-     * ExtendoArm_UNLATCH unlatches the ExtendoArm
-     */
-    void ExtendoArm5000_UNLATCH()
-    {
-        robot.extendoArm5000.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.extendoArm5000.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        robot.extendoArm5000.setPower(1);
-        sleep(150);
-        robot.extendoArm5000.setPower(-1);
-        sleep(150);
-        robot.extendoArm5000.setPower(1);
-        sleep(150);
-        robot.extendoArm5000.setPower(-1);
-        sleep(150);
-        robot.extendoArm5000.setPower(1);
-        sleep(150);
-        robot.extendoArm5000.setPower(-1);
-        sleep(150);
         robot.extendoArm5000.setPower(0);
     }
 

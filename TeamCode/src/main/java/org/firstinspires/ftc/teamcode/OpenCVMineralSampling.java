@@ -46,7 +46,7 @@ import java.util.List;
  * robotics OpenCV applications.
  */
 
-public class MineralSampling extends OpenCVPipeline {
+public class OpenCVMineralSampling extends OpenCVPipeline {
     private boolean showContours = true;
     private boolean showThresholdedGold = false;
     private boolean showThresholdedSilver = false;

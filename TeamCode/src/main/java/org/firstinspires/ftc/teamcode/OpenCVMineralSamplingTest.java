@@ -43,10 +43,10 @@ import java.util.List;
  *
  * Additionally, the centers of the bounding rectangles of the contours are sent to telemetry.
  */
-@TeleOp(name="MineralSamplingTest")
+@TeleOp(name="OpenCVMineralSamplingTest")
 @Disabled
-public class MineralSamplingTest extends OpMode {
-    private MineralSampling mineralSampling;
+public class OpenCVMineralSamplingTest extends OpMode {
+    private OpenCVMineralSampling mineralSampling;
 
     private double[] colorZ = new double[4];
     private double hue = 0;
@@ -54,7 +54,7 @@ public class MineralSamplingTest extends OpMode {
     private double val = 0;
     @Override
     public void init() {
-        mineralSampling = new MineralSampling();
+        mineralSampling = new OpenCVMineralSampling();
         // can replace with ActivityViewDisplay.getInstance() for fullscreen
         mineralSampling.init(hardwareMap.appContext, CameraViewDisplay.getInstance());
         mineralSampling.setShowCountours(false);

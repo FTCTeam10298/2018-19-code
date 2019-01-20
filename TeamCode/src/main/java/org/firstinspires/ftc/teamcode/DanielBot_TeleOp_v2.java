@@ -41,11 +41,11 @@ import static java.lang.Math.abs;
  * This file provides Teleop driving for our robot.
  * The code is structured as an Iterative OpMode.
  *
- * This OpMode uses the common FutureBot hardware class to define the devices on the robot.
- * All device access is managed through the FutureBot_Hardware class.
+ * This OpMode uses the common DanielBot hardware class to define the devices on the robot.
+ * All device access is managed through the FDanielBot_Hardware class.
  */
 
-@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name="DanielBot TeleOp v2", group="FutureBot")
+@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name="DanielBot TeleOp v2", group="DanielBot")
 public class DanielBot_TeleOp_v2 extends OpMode {
 
     /* Declare OpMode members. */
@@ -54,6 +54,11 @@ public class DanielBot_TeleOp_v2 extends OpMode {
     double  x = 0;
     double  y = 0;
     double  z = 0;
+
+    double inertia = 0.2;
+
+    double time_a = 0;
+    double dt = 0;
 
     boolean collectOtronACTIVE     = false;
     boolean collectOtronSWITCHING  = false;
@@ -79,13 +84,19 @@ public class DanielBot_TeleOp_v2 extends OpMode {
     @Override
     public void loop() {
 
+        // Calculate loop Period (dt).
+        // Let's not repeat last year's failure/laziness that killed our performance at Regionals...
+        dt = getRuntime() - time_a;
+        time_a = getRuntime();
+        telemetry.addData("Loop Time", "%f", dt);
+
         // Send telemetry message to signify robot running
         telemetry.addData("Say", "N8 is the gr8est without deb8");
 
         if (gamepad1.dpad_up || gamepad2.dpad_up) {
-            DrivePowerAll(.5);
+            robot.DrivePowerAll(.5);
         } else if (gamepad1.dpad_down || gamepad2.dpad_down) {
-            DrivePowerAll(-.5);
+            robot.DrivePowerAll(-.5);
         } else if (gamepad1.dpad_left || gamepad2.dpad_left) {
             DriveSideways(.5);
         } else if (gamepad1.dpad_right || gamepad2.dpad_right) {
@@ -137,10 +148,23 @@ public class DanielBot_TeleOp_v2 extends OpMode {
                 maxvalue = 1;
             }
 
-            robot.frontRightDrive.setPower(-1 * Range.clip(((y + x - z) / maxvalue), -1.0, 1.0));
-            robot.frontLeftDrive.setPower(-1 * Range.clip(((y - x + z) / maxvalue), -1.0, 1.0));
-            robot.backLeftDrive.setPower(-1 * Range.clip(((y + x + z) / maxvalue), -1.0, 1.0));
-            robot.backRightDrive.setPower(-1 * Range.clip(((y - x - z) / maxvalue), -1.0, 1.0));
+            double frontLeftPower  = (-1 * Range.clip(((y - x + z) / maxvalue), -1.0, 1.0));
+            double frontRightPower = (-1 * Range.clip(((y + x - z) / maxvalue), -1.0, 1.0));
+            double backLeftPower   = (-1 * Range.clip(((y + x + z) / maxvalue), -1.0, 1.0));
+            double backRightPower  = (-1 * Range.clip(((y - x - z) / maxvalue), -1.0, 1.0));
+
+            if (frontLeftPower > 0.1 || frontRightPower > 0.1 || backLeftPower > 0.1 || backRightPower > 0.1)
+            {
+                inertia += (0.1*dt);
+                inertia = Range.clip(inertia, 0, 1);
+            }
+            else
+            {
+                inertia = 0.2;
+            }
+
+            robot.driveSetPower(frontLeftPower*inertia, frontRightPower*inertia,
+                                backLeftPower*inertia, backRightPower*inertia);
         }
 
         if (gamepad1.y || gamepad2.y) {
@@ -217,32 +241,11 @@ public class DanielBot_TeleOp_v2 extends OpMode {
 
     }
 
-    /*
+    /**
     FUNCTIONS------------------------------------------------------------------------------------------------------
      */
-    void DrivePowerAll (double power)
-    {
-        robot.frontLeftDrive.setPower(power);
-        robot.frontRightDrive.setPower(power);
-        robot.backRightDrive.setPower(power);
-        robot.backLeftDrive.setPower(power);
-    }
-
     void DriveSideways (double power)
     {
-        if (power > 0) // Drive right
-        {
-            robot.frontLeftDrive.setPower(-power);
-            robot.backLeftDrive.setPower(power);
-            robot.backRightDrive.setPower(-power);
-            robot.frontRightDrive.setPower(power);
-        }
-        else // Drive left
-        {
-            robot.frontRightDrive.setPower(power);
-            robot.backRightDrive.setPower(-power);
-            robot.backLeftDrive.setPower(power);
-            robot.frontLeftDrive.setPower(-power);
-        }
+        robot.driveSetPower(-power, power, power, -power);
     }
 }
