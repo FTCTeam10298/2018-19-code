@@ -28,6 +28,7 @@
  */
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -35,6 +36,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
@@ -113,6 +115,8 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
     static final double PIVOTARM_CONSTANT = 280 / 9; //constant that converts liftonator to degrees (1120*10/360)
     static final double EXTENDOARM_CONSTANT = 1120 * 2 / (3 * Math.PI); //constant that converts ExtendoArm to inches 1120 * 2/(3 * 3.14159265)
 
+    ModernRoboticsI2cRangeSensor rangeSensor;
+
     private static final String TFOD_MODEL_ASSET = "RoverRuckus.tflite";
     private static final String LABEL_GOLD_MINERAL = "Gold Mineral";
     private static final String LABEL_SILVER_MINERAL = "Silver Mineral";
@@ -141,6 +145,9 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
 
         // Initialize Vuforia ----------------------------------------------------------------------
         initVuforia();
+
+        // Initialize Sensor
+        rangeSensor = hardwareMap.get(ModernRoboticsI2cRangeSensor.class, "range");
 
         // Run though the menu ---------------------------------------------------------------------
         doMenus();
@@ -288,6 +295,7 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
                 robot.collectOtron.setPower(-1);
                 sleep(2000);
                 robot.collectOtron.setPower(0);
+                PivotArmSetRotation(1, -20, false);
 
                 if (sampling == Sampling.ONE) {
                     DriveRobotPosition(1, -50);
@@ -303,23 +311,30 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
                     DriveRobotPosition(.6, -25);
                 }
                 else if (sampling == Sampling.TWO && startposition == StartPosition.SILVER) {
-                    // Line up to back side of second sampling field
-                    DriveRobotTurn(1, -90);
-                    DriveRobotPosition(1, 14);
-                    DriveRobotTurn(1, -45);
-
-                    // Sample
-                    DriveSampleInverted();
-
-                    // Return to original position-ish
-                    DriveRobotTurn(1, 45);
-                    DriveRobotPosition(1, -14);
-                    DriveRobotTurn(1, 80);
-
-                    // Drive back
-                    DriveRobotPosition(1, -50);
-                    DriveSidewaysTime(1, -1); // Strafe right
-                    DriveRobotPosition(.6, -25);
+                    // Drive back varying amounts depending on sample
+                    if (gold == Gold.LEFT)
+                        DriveRobotDistance(12, 1);
+                    else if (gold == Gold.CENTER)
+                        DriveRobotDistance(24, 1);
+                    else
+                        DriveRobotDistance(36, 1);
+//                    // Line up to back side of second sampling field
+//                    DriveRobotTurn(1, -90);
+//                    DriveRobotPosition(1, 14);
+//                    DriveRobotTurn(1, -45);
+//
+//                    // Sample
+//                    DriveSampleInverted();
+//
+//                    // Return to original position-ish
+//                    DriveRobotTurn(1, 45);
+//                    DriveRobotPosition(1, -14);
+//                    DriveRobotTurn(1, 80);
+//
+//                    // Drive back
+//                    DriveRobotPosition(1, -50);
+//                    DriveSidewaysTime(1, -1); // Strafe right
+//                    DriveRobotPosition(.6, -25);
                 }
                 else {//im here FIXME rest of Drive my Car (Beep Beep, Beep Beep, Yeah)
                     DriveRobothug(1, -30, false);
@@ -396,6 +411,17 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
         DrivePowerAll(power);
         sleep(ms);
         DrivePowerAll(0);
+    }
+
+    /**
+     * DriveRobotDistancer drives the robot the set number of inches at the given power level.
+     * @param inches How long to drive
+     * @param power Power level to set motors to, negative will drive the robot backwards
+     */
+    void DriveRobotDistance(int inches, double power)
+    {
+        int target = Math.round((float)rangeSensor.getDistance(DistanceUnit.INCH)) - inches;
+        DriveRobotPosition(power, target);
     }
 
     /**
@@ -611,6 +637,7 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
     }
 
     void DriveSampleInverted () {
+        robot.collectOtron.setPower(1);
         if (gold != Gold.CENTER) {
             if (gold == Gold.LEFT)
                 DriveRobotTurn(.3, 35);
@@ -633,6 +660,7 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
                     && crater == Crater.NEAR))
                 DriveRobotPosition(.3, -20);
         }
+        robot.collectOtron.setPower(0);
     }
 
     /**
