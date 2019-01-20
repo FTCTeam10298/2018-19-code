@@ -462,10 +462,7 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
             robot.DrivePowerAll(abs(power)); // Use abs() to make sure power is positive
         }
 
-        robot.frontLeftDrive.setTargetPosition((int)position);
-        robot.frontRightDrive.setTargetPosition((int)position);
-        robot.backLeftDrive.setTargetPosition((int)position);
-        robot.backRightDrive.setTargetPosition((int)position);
+        robot.driveSetTargetPosition((int)position, (int)position, (int)position, (int)position);
 
         for (int i=0; i < 5; i++) {    // Repeat check 5 times, sleeping 10ms between,
                                        // as isBusy can be a bit unreliable
