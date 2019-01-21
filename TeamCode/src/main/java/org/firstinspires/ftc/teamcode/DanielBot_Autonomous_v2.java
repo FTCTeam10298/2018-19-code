@@ -331,7 +331,11 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
 
                     DriveRobotTurn(0.5, 85);
 
-                    DriveRobotDistanceToObject(1, 100);
+                    DriveRobotDistanceToObject(1, 70);
+
+                    DriveSidewaysTime(1, 1);
+
+                    DriveRobotPosition(1, -24);
 
 //                    // Line up to back side of second sampling field
 //                    DriveRobotTurn(1, -90);
