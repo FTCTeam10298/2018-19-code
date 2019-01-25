@@ -55,7 +55,7 @@ public class DanielBot_TeleOp_v2 extends OpMode {
     double  y = 0;
     double  z = 0;
 
-    double inertia = 0.2;
+    double inertia = 0.7;
 
     double time_a = 0;
     double dt = 0;
@@ -160,7 +160,7 @@ public class DanielBot_TeleOp_v2 extends OpMode {
             }
             else
             {
-                inertia = 0.2;
+                inertia = 0.7;
             }
 
             robot.driveSetPower(frontLeftPower*inertia, frontRightPower*inertia,
@@ -188,13 +188,13 @@ public class DanielBot_TeleOp_v2 extends OpMode {
         else if (gamepad2.right_trigger > 0)
             robot.extendoArm5000.setPower(gamepad2.right_trigger);
         else if (gamepad1.left_trigger > 0)
-            robot.extendoArm5000.setPower(-gamepad1.left_trigger);
+            robot.extendoArm5000.setPower(-gamepad1.right_trigger);
         else if (gamepad2.left_trigger > 0)
             robot.extendoArm5000.setPower(-gamepad2.left_trigger);
         else
             robot.extendoArm5000.setPower(0);
 
-        if (gamepad1.right_bumper || gamepad1.left_bumper || gamepad2.right_bumper || gamepad2.left_bumper)
+        if (gamepad1.left_bumper || gamepad1.right_bumper || gamepad2.left_bumper || gamepad2.right_bumper)
             collectOtronSWITCHING = true;
         else if (collectOtronSWITCHING) {
             collectOtronSWITCHING = false;
@@ -204,9 +204,9 @@ public class DanielBot_TeleOp_v2 extends OpMode {
                 collectOtronACTIVE = true;
         }
 
-        if (gamepad1.right_bumper || gamepad2.right_bumper)
+        if (gamepad1.left_bumper || gamepad2.left_bumper)
             collectOtronREVERSE = true;
-        else if (gamepad1.left_bumper || gamepad2.left_bumper)
+        else if (gamepad1.right_bumper || gamepad2.right_bumper)
             collectOtronREVERSE = false;
 
         if (collectOtronACTIVE && !collectOtronREVERSE) {

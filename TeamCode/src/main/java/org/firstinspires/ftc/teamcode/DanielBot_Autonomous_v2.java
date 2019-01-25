@@ -235,9 +235,11 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
             if (hanging == Lift.YES) {
                 //robot.pivotLock.setPosition(.5);
                 //PivotArmUnlock();
+                ExtendoArm5000_ACTIVATE(.5,5);
                 PivotArmSetRotation(.5, -20, false);
                 PivotArmSetRotation(.5, 95, true);
                 DriveRobotPosition(.25, 8);
+                ExtendoArm5000_ACTIVATE(.5,-3);
                 PivotArmSetRotation(1, -90, false);
             } else {
                 DriveRobotPosition(1, -3);
