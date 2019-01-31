@@ -20,11 +20,11 @@ public class DanielBot_Hardware
     public DcMotor frontRightDrive    = null;
     public DcMotor backRightDrive     = null;
     public DcMotor extendoArm5000     = null;
-    public DcMotor pivotArm1 = null;
-    public DcMotor pivotArm2 = null;
+    public DcMotor pivotArm1          = null;
+    public DcMotor pivotArm2          = null;
     public DcMotor collectOtron       = null;
-    public Servo   extensionLock      = null;
-    public Servo   pivotLock          = null;
+    public Servo   collectorGate      = null;
+    public Servo   markerDumper       = null;
 
     /* Local OpMode members. */
     HardwareMap    hwMap              = null;
@@ -102,9 +102,11 @@ public class DanielBot_Hardware
 
 
         // Define and initialize all installed servos
-        extensionLock = hwMap.servo.get("extension_lock");
+        collectorGate = hwMap.servo.get("extension_lock");
+        markerDumper = hwMap.servo.get("marker_dumper");
 
-        extensionLock.setPosition(.9);
+        collectorGate.setPosition(.9);
+        markerDumper.setPosition(0);
     }
 
     /**

@@ -240,9 +240,9 @@ public class DanielBot_TeleOp_v2 extends OpMode {
 
         // Collector lid
         if (gamepad1.b || gamepad2.b)
-            robot.extensionLock.setPosition(.45);
+            robot.collectorGate.setPosition(.45);
         else {
-            robot.extensionLock.setPosition(.9);
+            robot.collectorGate.setPosition(.9);
         }
 
     }
