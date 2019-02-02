@@ -784,7 +784,7 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
         robot.extendoArm5000.setPower(power);
         robot.extendoArm5000.setTargetPosition(position);
         while (robot.extendoArm5000.isBusy())
-            dashboard.displayPrintf(10, "Don't fire at the ENEMY until you see the whites of their eyes!");
+            dashboard.displayPrintf(10, "Encoder position: %d", robot.extendoArm5000.getCurrentPosition());
         robot.extendoArm5000.setPower(0);
     }
 

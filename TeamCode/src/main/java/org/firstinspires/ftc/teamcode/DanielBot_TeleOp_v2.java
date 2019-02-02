@@ -93,6 +93,7 @@ public class DanielBot_TeleOp_v2 extends OpMode {
 
         // Send telemetry message to signify robot running
         telemetry.addData("Say", "N8 is the gr8est without deb8");
+        telemetry.addData("ExtensionArmCount", robot.extendoArm5000.getCurrentPosition());
 
         if (gamepad1.dpad_down || gamepad2.dpad_down) {
             robot.DrivePowerAll(.5);
@@ -215,10 +216,10 @@ public class DanielBot_TeleOp_v2 extends OpMode {
             collectOtronREVERSE = false;
 
         if (collectOtronACTIVE && !collectOtronREVERSE) {
-            robot.collectOtron.setPower(1);
+            robot.collectOtron.setPower(.70);
         }
         else if (collectOtronACTIVE)
-            robot.collectOtron.setPower(-1);
+            robot.collectOtron.setPower(-.70);
         else
             robot.collectOtron.setPower(0);
 
@@ -240,9 +241,9 @@ public class DanielBot_TeleOp_v2 extends OpMode {
 
         // Collector lid
         if (gamepad1.b || gamepad2.b)
-            robot.collectorGate.setPosition(.45);
+            robot.collectorGate.setPosition(.20);
         else {
-            robot.collectorGate.setPosition(.9);
+            robot.collectorGate.setPosition(.8);
         }
 
     }
