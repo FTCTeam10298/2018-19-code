@@ -298,8 +298,8 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
                 //    DriveRobotTurn(.3, 130); else
                 if (startposition == StartPosition.GOLD && crater == Crater.NEAR)
                     DriveRobotTurn(.3, -120);
-                //else
-                //    DriveRobotTurn(.3, -30);
+                else if (startposition == StartPosition.SILVER)
+                    DriveRobotTurn(.3, -30);
                 //DriveRobotPosition(.5, 3);
                 if (startposition == StartPosition.GOLD && crater == Crater.NEAR) {
                     //DriveSidewaysTime(1, -1); // Strafe right

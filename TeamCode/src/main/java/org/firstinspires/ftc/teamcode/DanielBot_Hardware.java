@@ -106,7 +106,7 @@ public class DanielBot_Hardware
         collectorGate = hwMap.servo.get("extension_lock");
         markerDumper = hwMap.servo.get("marker_dumper");
 
-        collectorGate.setPosition(.9);
+        collectorGate.setPosition(.8);
         markerDumper.setPosition(0);
     }
 
