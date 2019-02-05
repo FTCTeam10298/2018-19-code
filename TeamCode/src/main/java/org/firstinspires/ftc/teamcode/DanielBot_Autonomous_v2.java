@@ -235,14 +235,12 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
         // Init
         if (DoTask("Init", runmode)) {
             if (hanging == Lift.YES) {
-                //robot.pivotLock.setPosition(.5);
-                //PivotArmUnlock();
                 ExtendoArm5000_ACTIVATE(.5,5);
                 PivotArmSetRotation(.5, -20, false, false);
                 PivotArmSetRotation(.5, 95, true, false);
-                DriveRobotPosition(.25, 8);
+                DriveRobotPosition(.3, 8);
                 ExtendoArm5000_ACTIVATE(.5,-2);
-                PivotArmSetRotation(1, -90, false, false);
+                PivotArmSetRotation(1, -65, false, false);
             } else {
                 DriveRobotPosition(1, -3);
                 sleep(300);
@@ -253,7 +251,6 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
 
         if (DoTask("Mineral Sampling", runmode)) {
             if (startposition == StartPosition.GOLD) {
-                PivotArmSetRotation(1, 25, false, true);
                 DriveRobotPosition(0.75, 10, true);
                 ExtendoArm5000_ACTIVATE(1, 25);
                 robot.collectOtron.setPower(.7);
@@ -261,8 +258,9 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
                 robot.collectOtron.setPower(0);
                 ExtendoArm5000_ACTIVATE(1, -24);
                 DriveRobotPosition(0.75, -10, true);
-                PivotArmSetRotation(1, -25, false, false);
             }
+
+            PivotArmSetRotation(1, -25, false, false);
 
             if (sampling == Sampling.ONE || sampling == Sampling.TWO)
                 DriveSample();
@@ -276,12 +274,11 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
                 DriveRobotPosition(1, 16);
             }
             else if (depot == Depot.YES && crater != Crater.NONE) {
-                DriveRobotPosition(.5, 10);
-                if (startposition == StartPosition.SILVER) {
-                    DriveRobotTurn(.3, -90);
-                }
+                DriveRobotPosition(.5, 8);
 
                 if (startposition == StartPosition.SILVER) {
+                    DriveRobotPosition(.5, 2);
+                    DriveRobotTurn(.3, -90);
                     // Drive to wall then to depot
                     DriveRobotPosition(.5, 50);
                     DriveRobotTurn(.3, -35);
@@ -297,10 +294,10 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
 
                 if (sampling == Sampling.ONE) {
                     if (startposition == StartPosition.GOLD && crater == Crater.FAR) {
-                        DriveRobotTurn(.5, -90);
-                        DriveRobotPosition(.8, 50, true);
-                        DriveRobotTurn(1, -35, false);
-                        DriveRobotPosition(1, 10, false);
+                        DriveRobotTurn(.5, -70);
+                        DriveRobotPosition(.8, 40, true);
+                        DriveRobotTurn(1, -45, false);
+                        DriveRobotPosition(1, 30, false);
                     }
                     else if (startposition == StartPosition.GOLD && crater == Crater.NEAR) {
                         DriveRobotTurn(.5, -90);
@@ -662,7 +659,7 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
             }
         } else { // gold == Gold.CENTER
             DriveRobotPosition(.3, 20);
-            sleep(500);
+            sleep(100);
             if (!(depot == Depot.NO && (sampling == Sampling.ONE || sampling == Sampling.ZERO)
                     && crater == Crater.NEAR))
                 DriveRobotPosition(.3, -20);
