@@ -59,8 +59,8 @@ public class DanielBot_Hardware
         backRightDrive.setDirection(DcMotor.Direction.FORWARD);
 
         extendoArm5000.setDirection(DcMotor.Direction.REVERSE);
-        pivotArm1.setDirection(DcMotor.Direction.FORWARD);
-        pivotArm2.setDirection(DcMotor.Direction.FORWARD);
+        pivotArm1.setDirection(DcMotor.Direction.REVERSE);
+        pivotArm2.setDirection(DcMotor.Direction.REVERSE);
         collectOtron.setDirection(DcMotor.Direction.REVERSE);
 
 

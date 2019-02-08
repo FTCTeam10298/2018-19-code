@@ -116,8 +116,8 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
             (WHEEL_DIAMETER_INCHES * Math.PI) / DRIVETRAIN_ERROR;
     static final double COUNTS_PER_DEGREE     = COUNTS_PER_INCH*0.20672; // Found by testing
 
-    static final double PIVOTARM_CONSTANT = 280.0 / 9.0; // Constant that converts pivot arm to degrees (1120*10/360)
-    static final double EXTENDOARM_CONSTANT = 1120 * 2 / (3 * Math.PI); // Constant that converts ExtendoArm to inches 1120 * 2/(3 * 3.14159265)
+    static final double PIVOTARM_CONSTANT     = 1440.0 * 10.0 / 360.0; // Constant that converts pivot arm to degrees (1120*10/360 for Rev 40:1)
+    static final double EXTENDOARM_CONSTANT   = 1120 * 2 / (3 * Math.PI); // Constant that converts ExtendoArm to inches 1120 * 2/(3 * 3.14159265)
 
     ModernRoboticsI2cRangeSensor rangeSensor;
 

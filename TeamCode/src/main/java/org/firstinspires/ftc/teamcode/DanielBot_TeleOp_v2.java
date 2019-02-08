@@ -33,6 +33,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
 
 import static java.lang.Math.abs;
@@ -55,18 +56,17 @@ public class DanielBot_TeleOp_v2 extends OpMode {
     double  y = 0;
     double  z = 0;
 
-    double inertia = 0.7;
+    double inertia      = 0.5;
 
-    double time_a = 0;
-    double dt = 0;
+    double time_a       = 0;
+    double dt           = 0;
+    double time_stopped = 0;
+    int    direction    = 1;
 
     boolean collectOtronACTIVE     = false;
     boolean collectOtronSWITCHING  = false;
     boolean collectOtronREVERSE    = false;
     boolean refinatorACTIVE        = false;
-
-//    boolean pivotLockSWITCHING     = false;
-//    boolean pivotLockENGAGED       = false;
 
     // Code to run once when the driver hits INIT
     @Override
@@ -90,10 +90,12 @@ public class DanielBot_TeleOp_v2 extends OpMode {
         dt = getRuntime() - time_a;
         time_a = getRuntime();
         telemetry.addData("Loop Time", "%f", dt);
+        telemetry.addData("Inertia", "%f", inertia);
+        telemetry.addData("Arm power", "%f", robot.pivotArm1.getPower());
 
         // Send telemetry message to signify robot running
         telemetry.addData("Say", "N8 is the gr8est without deb8");
-        telemetry.addData("ExtensionArmCount", robot.extendoArm5000.getCurrentPosition());
+        //telemetry.addData("Extension arm encoder count", robot.extendoArm5000.getCurrentPosition());
 
         if (gamepad1.dpad_down || gamepad2.dpad_down) {
             robot.DrivePowerAll(.5);
@@ -155,14 +157,15 @@ public class DanielBot_TeleOp_v2 extends OpMode {
             double backLeftPower   = (-1 * Range.clip(((y + x + z) / maxvalue), -1.0, 1.0));
             double backRightPower  = (-1 * Range.clip(((y - x - z) / maxvalue), -1.0, 1.0));
 
-            if (frontLeftPower > 0.1 || frontRightPower > 0.1 || backLeftPower > 0.1 || backRightPower > 0.1)
+            if ((frontLeftPower > 0.1 || frontRightPower > 0.1 || backLeftPower > 0.1 || backRightPower > 0.1)
+                    || (frontLeftPower < -0.1 || frontRightPower < -0.1 || backLeftPower < -0.1 || backRightPower < -0.1))
             {
-                inertia += (0.1*dt);
+                inertia += (0.4*dt);
                 inertia = Range.clip(inertia, 0, 1);
             }
             else
             {
-                inertia = 0.7;
+                inertia = 0.5;
             }
 
             robot.driveSetPower(frontLeftPower*inertia, frontRightPower*inertia,
@@ -171,22 +174,42 @@ public class DanielBot_TeleOp_v2 extends OpMode {
 
         if (gamepad1.y || gamepad2.y) {
             refinatorACTIVE = false;
+            time_stopped = 0;
             robot.pivotArm1.setPower(1);
             robot.pivotArm2.setPower(1);
+            direction = 1;
         }
         else if (gamepad1.a || gamepad2.a) {
             refinatorACTIVE = false;
+            time_stopped = 0;
             robot.pivotArm1.setPower(-1);
             robot.pivotArm2.setPower(-1);
+            direction = -1;
         }
         else if (gamepad1.x || gamepad2.x) {
             refinatorACTIVE = true;
+            time_stopped = 0;
             robot.pivotArm1.setPower(-.3);
             robot.pivotArm2.setPower(-.3);
+            direction = -1;
         }
-        else if (!refinatorACTIVE){
-            robot.pivotArm1.setPower(0.0001);
-            robot.pivotArm2.setPower(0.0001);
+        else if (!refinatorACTIVE) {
+//            if (time_stopped < 0.25) {
+//                if ((robot.pivotArm1.getZeroPowerBehavior() != DcMotor.ZeroPowerBehavior.FLOAT) ||
+//                robot.pivotArm2.getZeroPowerBehavior() != DcMotor.ZeroPowerBehavior.FLOAT) {
+//                    robot.pivotArm1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+//                    robot.pivotArm2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+//                }
+//            } else {
+//                if ((robot.pivotArm1.getZeroPowerBehavior() != DcMotor.ZeroPowerBehavior.BRAKE) ||
+//                        robot.pivotArm2.getZeroPowerBehavior() != DcMotor.ZeroPowerBehavior.BRAKE) {
+//                    robot.pivotArm1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//                    robot.pivotArm2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//                }
+//            }
+            time_stopped += dt;
+            robot.pivotArm1.setPower(direction*Range.clip(abs(robot.pivotArm1.getPower())-(dt*4*abs(robot.pivotArm1.getPower()))-dt*0.5, 0, 1));
+            robot.pivotArm2.setPower(direction*Range.clip(abs(robot.pivotArm2.getPower())-(dt*4*abs(robot.pivotArm2.getPower()))-dt*0.5, 0, 1));
         }
 
         if (gamepad1.right_trigger > 0)
@@ -216,28 +239,12 @@ public class DanielBot_TeleOp_v2 extends OpMode {
             collectOtronREVERSE = false;
 
         if (collectOtronACTIVE && !collectOtronREVERSE) {
-            robot.collectOtron.setPower(.70);
+            robot.collectOtron.setPower(1);
         }
         else if (collectOtronACTIVE)
-            robot.collectOtron.setPower(-.70);
+            robot.collectOtron.setPower(-1);
         else
             robot.collectOtron.setPower(0);
-
-
-//        // Pivot lock
-//        if (gamepad1.x || gamepad2.x)
-//            pivotLockSWITCHING = true;
-//        else if (pivotLockSWITCHING) {
-//            pivotLockSWITCHING = false;
-//            if (pivotLockENGAGED) {
-//                pivotLockENGAGED = false;
-//                robot.pivotLock.setPosition(.5);
-//            }
-//            else {
-//                pivotLockENGAGED = true;
-//                robot.pivotLock.setPosition(1);
-//            }
-//        }
 
         // Collector lid
         if (gamepad1.b || gamepad2.b)
