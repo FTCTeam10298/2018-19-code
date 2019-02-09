@@ -287,9 +287,11 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
                     // Deposit team marker
                     DriveRobotTurn(1, -5);
                     robot.markerDumper.setPosition(0.9);
-                    robot.collectOtron.setPower(.7);
-                    sleep(2000);
-                    robot.collectOtron.setPower(0);
+                    if (sampling == Sampling.TWO) {
+                        robot.collectOtron.setPower(.7);
+                        sleep(2000);
+                        robot.collectOtron.setPower(0);
+                    }
                 }
 
                 if (sampling == Sampling.ONE) {
@@ -322,26 +324,27 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
                 else if (sampling == Sampling.TWO && startposition == StartPosition.SILVER) {
                     // Drive back varying amounts depending on sample
                     if (gold == Gold.LEFT)
-                        DriveRobotDistanceToObject(12, 1);
+                        DriveRobotDistanceToObject(1, 14);
                     else if (gold == Gold.CENTER)
-                        DriveRobotDistanceToObject(24, 1);
+                        DriveRobotDistanceToObject(1, 26);
                     else
-                        DriveRobotDistanceToObject(36, 1);
+                        DriveRobotDistanceToObject(1, 38);
 
-                    DriveRobotTurn(0.5, -90);
+                    DriveRobotTurn(1, -95, true);
 
                     // Extend arm and collect gold mineral
                     robot.collectOtron.setPower(1);
-                    ExtendoArm5000_ACTIVATE(1, 30);
-                    ExtendoArm5000_ACTIVATE(1, -30);
+                    PivotArmSetRotation(1, -45, false, true);
+                    ExtendoArm5000_ACTIVATE(1, 27);
+                    ExtendoArm5000_ACTIVATE(1, -27);
 
                     DriveRobotTurn(0.5, 85);
 
                     DriveRobotDistanceToObject(1, 70);
 
-                    DriveSidewaysTime(1, 1);
+                    DriveSidewaysTime(1, -1);
 
-                    DriveRobotPosition(1, -24);
+                    DriveRobotPosition(1, -12);
                 }
                 else {//im here FIXME rest of Drive my Car (Beep Beep, Beep Beep, Yeah)
                     DriveRobotHug(1, -30, false);
@@ -640,29 +643,29 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
     }
 
     void DriveSample () {
-        if (startposition == StartPosition.GOLD)
+        if (startposition == StartPosition.GOLD || sampling == Sampling.TWO)
             robot.collectOtron.setPower(1);
         if (gold != Gold.CENTER) {
             if (gold == Gold.LEFT)
-                DriveRobotTurn(.3, -35);
+                DriveRobotTurn(.6, -35, true);
             else if (gold == Gold.RIGHT)
-                DriveRobotTurn(.3, 35);
-            DriveRobotPosition(.3, 24);
+                DriveRobotTurn(.6, 35, true);
+            DriveRobotPosition(.6, 24, true);
             if (sampling == Sampling.TWO || startposition == StartPosition.GOLD
                     || (startposition == StartPosition.SILVER && depot == Depot.YES)) {
-                sleep(50);
-                DriveRobotPosition(.3, -24);
+                //sleep(50);
+                DriveRobotPosition(.6, -24, true);
                 if (gold == Gold.LEFT)
-                    DriveRobotTurn(.3, 35);
+                    DriveRobotTurn(.6, 35, true);
                 else if (gold == Gold.RIGHT)
-                    DriveRobotTurn(.3, -35);
+                    DriveRobotTurn(.6, -35, true);
             }
         } else { // gold == Gold.CENTER
-            DriveRobotPosition(.3, 20);
-            sleep(100);
+            DriveRobotPosition(.6, 20, true);
+            //sleep(100);
             if (!(depot == Depot.NO && (sampling == Sampling.ONE || sampling == Sampling.ZERO)
                     && crater == Crater.NEAR))
-                DriveRobotPosition(.3, -20);
+                DriveRobotPosition(.6, -20, true);
         }
         robot.collectOtron.setPower(0);
         PivotArmSetRotation(1, 55, false, true);
