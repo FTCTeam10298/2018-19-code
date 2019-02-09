@@ -32,7 +32,6 @@ import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.I2cAddr;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
@@ -235,11 +234,11 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
         // Init
         if (DoTask("Init", runmode)) {
             if (hanging == Lift.YES) {
-                ExtendoArm5000_ACTIVATE(.5,5);
+                ExtendoArm5000_ACTIVATE(.5,5, false);
                 PivotArmSetRotation(.5, -20, false, false);
                 PivotArmSetRotation(.5, 95, true, false);
                 DriveRobotPosition(.3, 8);
-                ExtendoArm5000_ACTIVATE(.5,-2);
+                ExtendoArm5000_ACTIVATE(.5,-2, false);
                 PivotArmSetRotation(1, -65, false, false);
             } else {
                 DriveRobotPosition(1, -3);
@@ -252,11 +251,11 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
         if (DoTask("Mineral Sampling", runmode)) {
             if (startposition == StartPosition.GOLD) {
                 DriveRobotPosition(0.75, 10, true);
-                ExtendoArm5000_ACTIVATE(1, 25);
+                ExtendoArm5000_ACTIVATE(1, 25, false);
                 robot.collectOtron.setPower(.7);
                 sleep(2000);
                 robot.collectOtron.setPower(0);
-                ExtendoArm5000_ACTIVATE(1, -24);
+                ExtendoArm5000_ACTIVATE(1, -24, false);
                 DriveRobotPosition(0.75, -10, true);
             }
 
@@ -274,10 +273,8 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
                 DriveRobotPosition(1, 16);
             }
             else if (depot == Depot.YES && crater != Crater.NONE) {
-                DriveRobotPosition(.5, 8);
-
                 if (startposition == StartPosition.SILVER) {
-                    DriveRobotPosition(.5, 2);
+                    DriveRobotPosition(.5, 10, true);
                     DriveRobotTurn(.3, -90);
                     // Drive to wall then to depot
                     DriveRobotPosition(.5, 50);
@@ -286,12 +283,14 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
 
                     // Deposit team marker
                     DriveRobotTurn(1, -5);
-                    robot.markerDumper.setPosition(0.9);
+                    robot.markerDumper.setPosition(0.8);
                     if (sampling == Sampling.TWO) {
                         robot.collectOtron.setPower(.7);
                         sleep(2000);
                         robot.collectOtron.setPower(0);
                     }
+                } else {
+                    DriveRobotPosition(1, 8, true);
                 }
 
                 if (sampling == Sampling.ONE) {
@@ -334,17 +333,29 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
 
                     // Extend arm and collect gold mineral
                     robot.collectOtron.setPower(1);
-                    PivotArmSetRotation(1, -45, false, true);
-                    ExtendoArm5000_ACTIVATE(1, 27);
-                    ExtendoArm5000_ACTIVATE(1, -27);
+                    if (gold == Gold.LEFT) {
+                        PivotArmSetRotation(1, -45, false, true);
+                        ExtendoArm5000_ACTIVATE(1, 27, false);
+                        ExtendoArm5000_ACTIVATE(1, -10, false);
+                        ExtendoArm5000_ACTIVATE(1, -17, true);
+                    } else if (gold == Gold.CENTER) {
+                        PivotArmSetRotation(1, -45, false, true);
+                        ExtendoArm5000_ACTIVATE(1, 20, false);
+                        ExtendoArm5000_ACTIVATE(1, -10, false);
+                        ExtendoArm5000_ACTIVATE(1, -10, true);
+                    } else {
+                        PivotArmSetRotation(1, -45, false, false);
+                        ExtendoArm5000_ACTIVATE(1, 10, false);
+                        ExtendoArm5000_ACTIVATE(1, -10, false);
+                    }
 
-                    DriveRobotTurn(0.5, 85);
+                    DriveRobotTurn(1, 85);
 
-                    DriveRobotDistanceToObject(1, 70);
+                    DriveRobotDistanceToObject(1, 60);
 
                     DriveSidewaysTime(1, -1);
 
-                    DriveRobotPosition(1, -12);
+                    DriveRobotPosition(1, -24);
                 }
                 else {//im here FIXME rest of Drive my Car (Beep Beep, Beep Beep, Yeah)
                     DriveRobotHug(1, -30, false);
@@ -740,14 +751,19 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
      * Positive extends
      * @param power
      * @param inches
+     * @param asynkk
      */
-    void ExtendoArm5000_ACTIVATE (double power, double inches)
+    void ExtendoArm5000_ACTIVATE(double power, double inches, boolean asynkk)
     {
         int position = (int)(inches*EXTENDOARM_CONSTANT);
         robot.extendoArm5000.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         robot.extendoArm5000.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         robot.extendoArm5000.setPower(power);
         robot.extendoArm5000.setTargetPosition(position);
+
+        if (asynkk)
+            return;
+
         while (robot.extendoArm5000.isBusy())
             dashboard.displayPrintf(10, "Encoder position: %d", robot.extendoArm5000.getCurrentPosition());
         robot.extendoArm5000.setPower(0);
