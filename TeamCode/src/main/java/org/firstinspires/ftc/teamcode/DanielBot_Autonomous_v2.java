@@ -151,20 +151,24 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
 
         // Initialize Sensor
         rangeSensor = hardwareMap.get(ModernRoboticsI2cRangeSensor.class, "range");
-        //rangeSensor.setI2cAddress(I2cAddr.create8bit());
 
         // Run though the menu ---------------------------------------------------------------------
         doMenus();
 
+        if (startposition == StartPosition.SILVER && crater == Crater.FAR) {
+            dashboard.displayPrintf(1, "You picked the wrong option, Stephanie!");
+            crater = Crater.NEAR;
+        }
+
         if (ClassFactory.getInstance().canCreateTFObjectDetector()) {
             initTfod();
         } else {
-            dashboard.displayPrintf(1,"Sorry! This device is not compatible with TFOD");
+            dashboard.displayPrintf(1,"THE ZTE SPEEEEED IS TOO FAST FOR TFOD");
         }
 
         dashboard.displayPrintf(0, "Status: Ready to start");
 
-//        //Motor test (Uncomment out to test drive train encoders)
+//        // Motor test (Uncomment out to test drive train encoders)
 //        robot.backRightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 //        robot.backLeftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 //        robot.frontRightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -241,7 +245,7 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
                 PivotArmSetRotation(.5, 95, true, false);
                 DriveRobotPosition(.3, 8);
                 ExtendoArm5000_ACTIVATE(1,-1.5, true);
-                if (startposition == StartPosition.GOLD) {
+                if (startposition == StartPosition.GOLD && depot == Depot.YES) {
                     PivotArmSetRotation(1, -65);
                 } else {
                     PivotArmSetRotation(1, -90);
@@ -255,9 +259,13 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
             if (startposition == StartPosition.GOLD && depot == Depot.YES) {
                 DriveRobotPosition(0.75, 10, true);
                 ExtendoArm5000_ACTIVATE(1, 25, false);
+                PivotArmSetRotation(1, -10);
+
                 robot.collectOtron.setPower(.7);
                 sleep(1000);
                 robot.collectOtron.setPower(0);
+
+                PivotArmSetRotation(1, 10, false, true);
                 ExtendoArm5000_ACTIVATE(1, -24, false);
                 DriveRobotPosition(0.75, -10, true);
                 PivotArmSetRotation(1, -25);
@@ -270,50 +278,47 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
         }
 
         if (DoTask("Drive my Car", runmode)) {
-            if (depot == Depot.YES) {
-                if (startposition == StartPosition.SILVER) {
-                    DriveRobotPosition(.5, 10, true);
-                    DriveRobotTurn(.6, -90, true);
-                    // Drive to wall then to depot
-                    DriveRobotPosition(.7, 50, true);
-                    DriveRobotTurn(.3, -35);
-                    //DriveSidewaysTime(.5, 1);
-                    DriveRobotHug(1, 38, false);
+            if (startposition == StartPosition.GOLD) {
+                DriveRobotPosition(1, 8, true);
 
-                    // Deposit team marker
-                    DriveRobotTurn(1, -5);
-                    robot.markerDumper.setPosition(0.8);
-                    if (sampling == Sampling.ONE) {
-                        robot.collectOtron.setPower(.7);
-                        sleep(1000);
-                        robot.collectOtron.setPower(0);
-                    } else {
-                        sleep(500);
-                    }
-                } else {
-                    DriveRobotPosition(1, 8, true);
+                if (crater == Crater.FAR) {
+                    DriveRobotTurn(.5, -70);
+                    DriveRobotPosition(.8, 40, true);
+                    DriveRobotTurn(1, -45, false);
+                    DriveRobotPosition(1, 30, false);
                 }
+                else if (crater == Crater.NEAR) {
+                    DriveRobotTurn(.5, -90);
+                    DriveRobotPosition(.8, -50, true);
+                    DriveRobotTurn(1, 35, false);
+                    DriveRobotPosition(1, -10, false);
+                }
+            } else if (startposition == StartPosition.SILVER && depot == Depot.YES) {
+                DriveRobotPosition(.5, 10, true);
+                DriveRobotTurn(.6, -90, true);
+                // Drive to wall then to depot
+                DriveRobotPosition(.7, 50, true);
+                DriveRobotTurn(.3, -35);
+                //DriveSidewaysTime(.5, 1);
+                DriveRobotHug(1, 38, false);
 
+                // Deposit team marker
+                DriveRobotTurn(1, -5);
+                robot.markerDumper.setPosition(0.7);
                 if (sampling == Sampling.ONE) {
-                    if (startposition == StartPosition.GOLD && crater == Crater.FAR) {
-                        DriveRobotTurn(.5, -70);
-                        DriveRobotPosition(.8, 40, true);
-                        DriveRobotTurn(1, -45, false);
-                        DriveRobotPosition(1, 30, false);
-                    }
-                    else if (startposition == StartPosition.GOLD && crater == Crater.NEAR) {
-                        DriveRobotTurn(.5, -90);
-                        DriveRobotPosition(.8, -50, true);
-                        DriveRobotTurn(1, 35, false);
-                        DriveRobotPosition(1, -10, false);
-                    }
-                    else if (startposition == StartPosition.SILVER && crater == Crater.NEAR){
-                        DriveRobotPosition(1, -50);
-                        DriveSidewaysTime(1, -1); // Strafe right
-                        DriveRobotPosition(.6, -25);
-                    }
+                    robot.collectOtron.setPower(.7);
+                    sleep(1000);
+                    robot.collectOtron.setPower(0);
+                } else {
+                    sleep(250);
                 }
-                else if (sampling == Sampling.TWO && startposition == StartPosition.SILVER) {
+
+                if (sampling == Sampling.ONE && crater == Crater.NEAR) {
+                    DriveRobotPosition(1, -50);
+                    DriveSidewaysTime(1, -1); // Strafe right
+                    DriveRobotPosition(.6, -25);
+                }
+                else if (sampling == Sampling.TWO) {
                     // Drive back varying amounts depending on sample
                     if (gold == Gold.LEFT)
                         DriveRobotDistanceToObject(1, 14);
@@ -328,10 +333,10 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
                     robot.collectOtron.setPower(1);
                     if (gold == Gold.LEFT) {
                         PivotArmSetRotation(1, -45, false, true);
-                        DriveRobotPosition(.5, 12);
-                        ExtendoArm5000_ACTIVATE(1, 16, false);
-                        ExtendoArm5000_ACTIVATE(1, -16, true);
-                        DriveRobotPosition(.5, -12);
+                        DriveRobotPosition(.7, 13);
+                        ExtendoArm5000_ACTIVATE(1, 14, false);
+                        ExtendoArm5000_ACTIVATE(1, -14, true);
+                        DriveRobotPosition(.7, -13);
                     } else if (gold == Gold.CENTER) {
                         PivotArmSetRotation(1, -45, false, true);
                         ExtendoArm5000_ACTIVATE(1, 18, false);
@@ -351,17 +356,6 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
 
                     DriveRobotPosition(1, -36);
                 }
-//                else {//im here FIXME rest of Drive my Car (Beep Beep, Beep Beep, Yeah)
-//                    DriveRobotHug(1, -30, false);
-//                    DriveSidewaysTime(2, 1);
-//                    DriveRobotTurn(1, 135);
-//                    sleep(500);
-//                    DriveRobotPosition(1, 30);
-//                    sleep(500);
-//                    DriveRobotTurn(1, -90);
-//                    DriveSample();
-//                    DriveRobotPosition(1, 26);
-//                }
             }
         }
 //        if (DoTask("Park", runmode)) {
