@@ -200,6 +200,8 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
 //        DriveRobotTurn(.3, 360);
 //        sleep(1000);
 //        DriveRobotTurn(.3, -360);
+//
+//        DriveRobotHug(1, 48, false);
 
         // Activate TensorFlow Object Detection.
         if (tfod != null) {
@@ -235,25 +237,22 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
         if (DoTask("Init", runmode)) {
             if (hanging == Lift.YES) {
                 ExtendoArm5000_ACTIVATE(1,5, false);
-                PivotArmSetRotation(.5, -20, false, false);
+                PivotArmSetRotation(.5, -20);
                 PivotArmSetRotation(.5, 95, true, false);
                 DriveRobotPosition(.3, 8);
                 ExtendoArm5000_ACTIVATE(1,-1.5, true);
                 if (startposition == StartPosition.GOLD) {
-                    PivotArmSetRotation(1, -65, false, false);
+                    PivotArmSetRotation(1, -65);
                 } else {
-                    PivotArmSetRotation(1, -90, false, false);
+                    PivotArmSetRotation(1, -90);
                 }
             } else {
-                DriveRobotPosition(1, -3);
-                sleep(300);
-                DriveRobotTurn(.35, 180);
-                DriveRobotPosition(1, 3);
+                DriveRobotPosition(1, 10);
             }
         }
 
         if (DoTask("Mineral Sampling", runmode)) {
-            if (startposition == StartPosition.GOLD) {
+            if (startposition == StartPosition.GOLD && depot == Depot.YES) {
                 DriveRobotPosition(0.75, 10, true);
                 ExtendoArm5000_ACTIVATE(1, 25, false);
                 robot.collectOtron.setPower(.7);
@@ -261,7 +260,7 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
                 robot.collectOtron.setPower(0);
                 ExtendoArm5000_ACTIVATE(1, -24, false);
                 DriveRobotPosition(0.75, -10, true);
-                PivotArmSetRotation(1, -25, false, false);
+                PivotArmSetRotation(1, -25);
             }
 
             if (sampling == Sampling.ONE || sampling == Sampling.TWO)
@@ -271,11 +270,7 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
         }
 
         if (DoTask("Drive my Car", runmode)) {
-            if (depot == Depot.NO && (sampling == Sampling.ONE || sampling == Sampling.ZERO)
-                    && crater == Crater.NEAR) {
-                DriveRobotPosition(1, 16);
-            }
-            else if (depot == Depot.YES && crater != Crater.NONE) {
+            if (depot == Depot.YES) {
                 if (startposition == StartPosition.SILVER) {
                     DriveRobotPosition(.5, 10, true);
                     DriveRobotTurn(.6, -90, true);
@@ -290,7 +285,7 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
                     robot.markerDumper.setPosition(0.8);
                     if (sampling == Sampling.ONE) {
                         robot.collectOtron.setPower(.7);
-                        sleep(2000);
+                        sleep(1000);
                         robot.collectOtron.setPower(0);
                     } else {
                         sleep(500);
@@ -312,17 +307,9 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
                         DriveRobotTurn(1, 35, false);
                         DriveRobotPosition(1, -10, false);
                     }
-                    else {
+                    else if (startposition == StartPosition.SILVER && crater == Crater.NEAR){
                         DriveRobotPosition(1, -50);
-                        if (startposition == StartPosition.SILVER ||
-                                (startposition == StartPosition.GOLD && crater == Crater.NEAR && gold != Gold.LEFT)) {
-                            DriveSidewaysTime(1, -1); // Strafe right
-                        } else if (startposition == StartPosition.GOLD && crater == Crater.NEAR && gold == Gold.LEFT) {
-                            DriveSidewaysTime(0.5, 1); // Strafe left
-                        } else if (startposition == StartPosition.GOLD && crater == Crater.FAR) {
-                            DriveSidewaysTime(1, 1); // Strafe left
-                        }
-
+                        DriveSidewaysTime(1, -1); // Strafe right
                         DriveRobotPosition(.6, -25);
                     }
                 }
@@ -341,10 +328,10 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
                     robot.collectOtron.setPower(1);
                     if (gold == Gold.LEFT) {
                         PivotArmSetRotation(1, -45, false, true);
-                        DriveRobotPosition(.5, 6);
-                        ExtendoArm5000_ACTIVATE(1, 21, false);
-                        ExtendoArm5000_ACTIVATE(1, -21, true);
-                        DriveRobotPosition(.5, -6);
+                        DriveRobotPosition(.5, 12);
+                        ExtendoArm5000_ACTIVATE(1, 16, false);
+                        ExtendoArm5000_ACTIVATE(1, -16, true);
+                        DriveRobotPosition(.5, -12);
                     } else if (gold == Gold.CENTER) {
                         PivotArmSetRotation(1, -45, false, true);
                         ExtendoArm5000_ACTIVATE(1, 18, false);
@@ -376,26 +363,6 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
 //                    DriveRobotPosition(1, 26);
 //                }
             }
-            else if (crater == Crater.NONE && depot == Depot.YES) {
-                if (gold == Gold.CENTER)
-                    DriveRobotPosition(.5, 36);
-                else {
-                    if (gold == Gold.LEFT)
-                        DriveRobotTurn(.3, -45);
-                    else
-                        DriveRobotTurn(.3, 45);
-                    DriveRobotPosition(.5, 52);
-                    if (gold == Gold.LEFT)
-                        DriveRobotTurn(.3, 90);
-                    else
-                        DriveRobotTurn(.3, -90);
-                    DriveRobotPosition(.5, 52);
-                }
-                robot.collectOtron.setPower(1);
-                sleep(800);
-                robot.collectOtron.setPower(0);
-            }
-
         }
 //        if (DoTask("Park", runmode)) {
 //
@@ -636,11 +603,11 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
         robot.driveSetMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         if ((!hugLeft && inches > 0) || (hugLeft && inches < 0)) {
-            robot.driveSetPower(power*.8, power, power, power*.8);
+            robot.driveSetPower(power*.5, power, power, power*.5);
         }
         else if ((!hugLeft && inches < 0) || (hugLeft && inches > 0))
         {
-            robot.driveSetPower(power, power*.8, power*.8, power);
+            robot.driveSetPower(power, power*.5, power*.5, power);
         }
 
         robot.driveSetTargetPosition((int)position, (int)position, (int)position, (int)position);
@@ -661,17 +628,16 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
     }
 
     void DriveSample () {
-        if (startposition == StartPosition.GOLD || sampling == Sampling.TWO)
-            robot.collectOtron.setPower(1);
+        robot.collectOtron.setPower(1);
         if (gold != Gold.CENTER) {
             if (gold == Gold.LEFT)
                 DriveRobotTurn(.6, -35, true);
             else if (gold == Gold.RIGHT)
                 DriveRobotTurn(.6, 35, true);
             DriveRobotPosition(.6, 24, true);
-            if (sampling == Sampling.TWO || startposition == StartPosition.GOLD
-                    || (startposition == StartPosition.SILVER && depot == Depot.YES)) {
-                //sleep(50);
+            if (startposition == StartPosition.SILVER && depot == Depot.NO && crater == Crater.NEAR)
+                DriveRobotPosition(1, 15);
+            else {
                 DriveRobotPosition(.6, -24, true);
                 if (gold == Gold.LEFT)
                     DriveRobotTurn(.6, 35, true);
@@ -680,9 +646,7 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
             }
         } else { // gold == Gold.CENTER
             DriveRobotPosition(.6, 20, true);
-            //sleep(100);
-            if (!(depot == Depot.NO && (sampling == Sampling.ONE || sampling == Sampling.ZERO)
-                    && crater == Crater.NEAR))
+            if (!(depot == Depot.NO && startposition == StartPosition.SILVER && crater == Crater.NEAR))
                 DriveRobotPosition(.6, -20, true);
         }
         robot.collectOtron.setPower(0);
@@ -721,6 +685,8 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
      * Positive swings back
      * @param power Power level
      * @param degrees Degrees of rotation
+     * @param unlatch Drives wheels backwards for unlatching purposes
+     * @param asynkk Allows for another function to take place simulataneously
      */
     void PivotArmSetRotation(double power, double degrees, boolean unlatch, boolean asynkk)
     {
@@ -753,12 +719,17 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
         robot.DrivePowerAll(0);
     }
 
+    void PivotArmSetRotation (double power, double degrees)
+    {
+        PivotArmSetRotation(power, degrees, false, false);
+    }
+
     /**
      * ExtendoArm_ACTIVATE ACTIVATES the ExtendoArm
      * Positive extends
-     * @param power
-     * @param inches
-     * @param asynkk
+     * @param power power of extension
+     * @param inches "inches" of extension (not accurate)
+     * @param asynkk allows for other functions to be run simultaneously
      */
     void ExtendoArm5000_ACTIVATE(double power, double inches, boolean asynkk)
     {
@@ -779,8 +750,8 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
     /**
      * ExtendoArm_ACTIVATE_TIME ACTIVATES the ExtendoArm
      * Positive extends
-     * @param power
-     * @param time
+     * @param power power of extension
+     * @param time time of extension
      */
     void ExtendoArm5000_ACTIVATE_TIME (double power, int time)
     {
