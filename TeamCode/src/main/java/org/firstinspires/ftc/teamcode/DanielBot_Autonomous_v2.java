@@ -294,7 +294,7 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
                     DriveRobotPosition(1, -10, false);
                 }
             } else if (startposition == StartPosition.SILVER && depot == Depot.YES) {
-                DriveRobotPosition(.5, 10, true);
+                DriveRobotPosition(.5, 9.5, true);
                 DriveRobotTurn(.6, -90, true);
                 // Drive to wall then to depot
                 DriveRobotPosition(.7, 50, true);
@@ -327,7 +327,7 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
                     else
                         DriveRobotDistanceToObject(1, 36);
 
-                    DriveRobotTurn(1, -95, true);
+                    DriveRobotTurn(1, -90, true);
 
                     // Extend arm and collect gold mineral
                     robot.collectOtron.setPower(1);
@@ -347,6 +347,8 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
                         ExtendoArm5000_ACTIVATE(1, 5, false);
                         ExtendoArm5000_ACTIVATE(1, -5, false);
                     }
+
+                    PivotArmSetRotation(1, 45, false, true);
 
                     DriveRobotTurn(1, 90);
 
