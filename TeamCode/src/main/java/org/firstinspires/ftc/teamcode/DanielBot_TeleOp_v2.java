@@ -67,6 +67,8 @@ public class DanielBot_TeleOp_v2 extends OpMode {
     boolean collectOtronSWITCHING  = false;
     boolean collectOtronREVERSE    = false;
     boolean refinatorACTIVE        = false;
+    boolean quickmodeSWITCHING     = false;
+    boolean quickmodeACTIVE        = false;
 
     // Code to run once when the driver hits INIT
     @Override
@@ -92,6 +94,10 @@ public class DanielBot_TeleOp_v2 extends OpMode {
         telemetry.addData("Loop Time", "%f", dt);
         telemetry.addData("Inertia", "%f", inertia);
         telemetry.addData("Arm power", "%f", robot.pivotArm1.getPower());
+        if (quickmodeACTIVE)
+            telemetry.addData("Arm QuickMode", "Enabled");
+        else
+            telemetry.addData("Arm QuickMode", "Disabled");
 
         // Send telemetry message to signify robot running
         telemetry.addData("Say", "N8 is the gr8est without deb8");
@@ -207,9 +213,24 @@ public class DanielBot_TeleOp_v2 extends OpMode {
 //                    robot.pivotArm2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 //                }
 //            }
+            if (quickmodeACTIVE) {
+                robot.pivotArm1.setPower(0);
+                robot.pivotArm2.setPower(0);
+            }
             time_stopped += dt;
             robot.pivotArm1.setPower(direction*Range.clip(abs(robot.pivotArm1.getPower())-(dt*4*abs(robot.pivotArm1.getPower()))-dt*0.5, 0, 1));
             robot.pivotArm2.setPower(direction*Range.clip(abs(robot.pivotArm2.getPower())-(dt*4*abs(robot.pivotArm2.getPower()))-dt*0.5, 0, 1));
+        }
+
+        if (gamepad1.left_stick_button || gamepad1.right_stick_button || gamepad2.left_stick_button || gamepad2.right_stick_button) {
+            quickmodeSWITCHING = true;
+        }
+        else if (quickmodeSWITCHING) {
+            quickmodeSWITCHING = false;
+            if (quickmodeACTIVE)
+                quickmodeACTIVE = false;
+            else
+                quickmodeACTIVE = true;
         }
 
         if (gamepad1.right_trigger > 0)
