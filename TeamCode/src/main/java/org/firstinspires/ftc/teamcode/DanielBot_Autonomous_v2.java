@@ -246,9 +246,9 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
                 DriveRobotPosition(.3, 8);
                 ExtendoArm5000_ACTIVATE(1,-1.5, true);
                 if (startposition == StartPosition.GOLD && depot == Depot.YES) {
-                    PivotArmSetRotation(1, -65);
+                    PivotArmSetRotation(1, -60);
                 } else {
-                    PivotArmSetRotation(1, -90);
+                    PivotArmSetRotation(1, -85);
                 }
             } else {
                 DriveRobotPosition(1, 10);
@@ -257,17 +257,17 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
 
         if (DoTask("Mineral Sampling", runmode)) {
             if (startposition == StartPosition.GOLD && depot == Depot.YES) {
-                DriveRobotPosition(0.75, 10, true);
-                ExtendoArm5000_ACTIVATE(1, 25, false);
-                PivotArmSetRotation(1, -10);
+                DriveRobotPosition(0.75, 13, true);
+                ExtendoArm5000_ACTIVATE(1, 21, false);
+                PivotArmSetRotation(1, -10, false, true);
 
                 robot.collectOtron.setPower(.7);
                 sleep(1000);
                 robot.collectOtron.setPower(0);
 
                 PivotArmSetRotation(1, 10, false, true);
-                ExtendoArm5000_ACTIVATE(1, -24, false);
-                DriveRobotPosition(0.75, -10, true);
+                ExtendoArm5000_ACTIVATE(1, -20, false);
+                DriveRobotPosition(0.75, -13, true);
                 PivotArmSetRotation(1, -25);
             }
 
@@ -279,6 +279,18 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
 
         if (DoTask("Drive my Car", runmode)) {
             if (startposition == StartPosition.GOLD) {
+                if (sampling == Sampling.ONE) {
+                    PivotArmSetRotation(1, 115, false, true);
+                    ExtendoArm5000_ACTIVATE(1, 14, false);
+                    sleep(500);
+                    robot.collectorGate.setPosition(.2);
+                    sleep(1000);
+                    robot.collectorGate.setPosition(.8);
+                    PivotArmSetRotation(1, -60, false, true);
+                    sleep(200);
+                    ExtendoArm5000_ACTIVATE(1, -14, true);
+                }
+
                 DriveRobotPosition(1, 8, true);
 
                 if (crater == Crater.FAR) {
@@ -334,8 +346,8 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
                     if (gold == Gold.LEFT) {
                         PivotArmSetRotation(1, -45, false, true);
                         DriveRobotPosition(.7, 13);
-                        ExtendoArm5000_ACTIVATE(1, 14, false);
-                        ExtendoArm5000_ACTIVATE(1, -14, true);
+                        ExtendoArm5000_ACTIVATE(1, 12, false);
+                        ExtendoArm5000_ACTIVATE(1, -12, true);
                         DriveRobotPosition(.7, -13);
                     } else if (gold == Gold.CENTER) {
                         PivotArmSetRotation(1, -45, false, true);
@@ -649,36 +661,9 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
         PivotArmSetRotation(1, 55, false, true);
     }
 
-//    void DriveSampleInverted () {
-//        robot.collectOtron.setPower(1);
-//        if (gold != Gold.CENTER) {
-//            if (gold == Gold.LEFT)
-//                DriveRobotTurn(.3, 35);
-//            else if (gold == Gold.RIGHT)
-//                DriveRobotTurn(.3, -35);
-//            DriveRobotPosition(.3, 24);
-//            if (sampling == Sampling.TWO || startposition == StartPosition.GOLD
-//                    || (startposition == StartPosition.SILVER && depot == Depot.YES)) {
-//                sleep(50);
-//                DriveRobotPosition(.3, -24);
-//                if (gold == Gold.LEFT)
-//                    DriveRobotTurn(.3, -35);
-//                else if (gold == Gold.RIGHT)
-//                    DriveRobotTurn(.3, 35);
-//            }
-//        } else { // gold == Gold.CENTER
-//            DriveRobotPosition(.3, 20);
-//            sleep(500);
-//            if (!(depot == Depot.NO && (sampling == Sampling.ONE || sampling == Sampling.ZERO)
-//                    && crater == Crater.NEAR))
-//                DriveRobotPosition(.3, -20);
-//        }
-//        robot.collectOtron.setPower(0);
-//    }
-
     /**
      * PivotArmSetRotation
-     * Positive swings back
+     * Positive swings up/back
      * @param power Power level
      * @param degrees Degrees of rotation
      * @param unlatch Drives wheels backwards for unlatching purposes
