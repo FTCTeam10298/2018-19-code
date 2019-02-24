@@ -141,7 +141,6 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
     public void runOpMode() {
         // Initialize the hardware -----------------------------------------------------------------
         robot.init(hardwareMap);
-        //robot.collectorGate.setPosition(.9); // Already done in hardware config
 
         // Initialize dashboard --------------------------------------------------------------------
         dashboard = HalDashboard.createInstance(telemetry);
@@ -283,9 +282,9 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
                     PivotArmSetRotation(1, 115, false, true);
                     ExtendoArm5000_ACTIVATE(1, 14, false);
                     sleep(500);
-                    robot.collectorGate.setPosition(.2);
+                    robot.collectorGate.setPosition(.25);
                     sleep(1000);
-                    robot.collectorGate.setPosition(.8);
+                    robot.collectorGate.setPosition(.65);
                     PivotArmSetRotation(1, -60, false, true);
                     sleep(200);
                     ExtendoArm5000_ACTIVATE(1, -14, true);
