@@ -116,7 +116,7 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
     static final double COUNTS_PER_DEGREE     = COUNTS_PER_INCH*0.20672; // Found by testing
 
     static final double PIVOTARM_CONSTANT     = 1440.0 * 10.0 / 360.0; // Constant that converts pivot arm to degrees (1120*10/360 for Rev 40:1)
-    static final double EXTENDOARM_CONSTANT   = 1120 * 2 / (3 * Math.PI); // Constant that converts ExtendoArm to inches 1120 * 2/(3 * 3.14159265)
+    static final double EXTENDOARM_CONSTANT   = 1120.0 * 2.0 * 15.0 / 25.0 / (3. * Math.PI); // Constant that converts ExtendoArm to inches 1120 * 2/(3 * 3.14159265)
 
     ModernRoboticsI2cRangeSensor rangeSensor;
 
@@ -245,9 +245,9 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
                 DriveRobotPosition(.3, 8);
                 ExtendoArm5000_ACTIVATE(1,-1.5, true);
                 if (startposition == StartPosition.GOLD && depot == Depot.YES) {
-                    PivotArmSetRotation(1, -60);
+                    PivotArmSetRotation(1, -63);
                 } else {
-                    PivotArmSetRotation(1, -85);
+                    PivotArmSetRotation(1, -88);
                 }
             } else {
                 DriveRobotPosition(1, 10);
@@ -280,14 +280,21 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
             if (startposition == StartPosition.GOLD) {
                 if (sampling == Sampling.ONE) {
                     PivotArmSetRotation(1, 115, false, true);
-                    ExtendoArm5000_ACTIVATE(1, 14, false);
+                    ExtendoArm5000_ACTIVATE(1, 15, false);
                     sleep(500);
                     robot.collectorGate.setPosition(.25);
-                    sleep(1000);
+                    PivotArmSetRotation(1, -5, false, true);
+                    sleep(200);
+                    PivotArmSetRotation(1, 5, false, true);
+                    sleep(200);
+                    PivotArmSetRotation(1, -5, false, true);
+                    sleep(200);
+                    PivotArmSetRotation(1, 5, false, true);
+                    sleep(200);
                     robot.collectorGate.setPosition(.65);
                     PivotArmSetRotation(1, -60, false, true);
                     sleep(200);
-                    ExtendoArm5000_ACTIVATE(1, -14, true);
+                    ExtendoArm5000_ACTIVATE(1, -15, true);
                 }
 
                 DriveRobotPosition(1, 8, true);
@@ -301,8 +308,8 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
                 else if (crater == Crater.NEAR) {
                     DriveRobotTurn(.5, -90);
                     DriveRobotPosition(.8, -50, true);
-                    DriveRobotTurn(1, 35, false);
-                    DriveRobotPosition(1, -10, false);
+                    DriveRobotTurn(1, 40, false);
+                    DriveRobotPosition(1, -11, false);
                 }
             } else if (startposition == StartPosition.SILVER && depot == Depot.YES) {
                 DriveRobotPosition(.5, 9.5, true);
@@ -343,18 +350,18 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
                     // Extend arm and collect gold mineral
                     robot.collectOtron.setPower(1);
                     if (gold == Gold.LEFT) {
-                        PivotArmSetRotation(1, -45, false, true);
+                        PivotArmSetRotation(1, -48, false, true);
                         DriveRobotPosition(.7, 13);
                         ExtendoArm5000_ACTIVATE(1, 12, false);
                         ExtendoArm5000_ACTIVATE(1, -12, true);
                         DriveRobotPosition(.7, -13);
                     } else if (gold == Gold.CENTER) {
-                        PivotArmSetRotation(1, -45, false, true);
+                        PivotArmSetRotation(1, -48, false, true);
                         ExtendoArm5000_ACTIVATE(1, 18, false);
                         ExtendoArm5000_ACTIVATE(1, -8, false);
                         ExtendoArm5000_ACTIVATE(1, -10, true);
                     } else {
-                        PivotArmSetRotation(1, -50, false, false);
+                        PivotArmSetRotation(1, -52, false, false);
                         ExtendoArm5000_ACTIVATE(1, 5, false);
                         ExtendoArm5000_ACTIVATE(1, -5, false);
                     }
@@ -638,9 +645,9 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
         robot.collectOtron.setPower(1);
         if (gold != Gold.CENTER) {
             if (gold == Gold.LEFT)
-                DriveRobotTurn(.6, -35, true);
+                DriveRobotTurn(.6, -32, true);
             else if (gold == Gold.RIGHT)
-                DriveRobotTurn(.6, 35, true);
+                DriveRobotTurn(.6, 32, true);
             DriveRobotPosition(.6, 24, true);
             if (startposition == StartPosition.SILVER && depot == Depot.NO && crater == Crater.NEAR)
                 DriveRobotPosition(1, 15);
@@ -649,7 +656,7 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
                 if (gold == Gold.LEFT)
                     DriveRobotTurn(.6, 35, true);
                 else if (gold == Gold.RIGHT)
-                    DriveRobotTurn(.6, -35, true);
+                    DriveRobotTurn(.6, -32, true);
             }
         } else { // gold == Gold.CENTER
             DriveRobotPosition(.6, 20, true);
