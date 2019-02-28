@@ -50,8 +50,8 @@ import hallib.HalDashboard;
 
 import static java.lang.Math.abs;
 
-@Autonomous(name="DanielBot Autonomous v2", group ="DanielBot")
-public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.MenuButtons {
+@Autonomous(name="DanielBot Autonomous", group ="DanielBot")
+public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuButtons {
     public enum StartPosition {
         SILVER,
         GOLD
@@ -91,6 +91,11 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
         NO
     }
 
+    public enum ExtraScore {
+        YES,
+        NO
+    }
+
 
     // Menu option variables
     RunMode runmode = RunMode.RUNMODE_AUTO;
@@ -101,6 +106,7 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
     Gold gold = Gold.CENTER;
     Depot depot = Depot.YES;
     Sampling sampling = Sampling.ZERO;
+    ExtraScore attemptExtraScore = ExtraScore.YES;
 
     /* Declare OpMode members. */
     private HalDashboard dashboard;
@@ -278,7 +284,7 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
 
         if (DoTask("Drive my Car", runmode)) {
             if (startposition == StartPosition.GOLD) {
-                if (sampling == Sampling.ONE) {
+                if (sampling == Sampling.ONE && attemptExtraScore == ExtraScore.YES) {
                     PivotArmSetRotation(1, 115, false, true);
                     ExtendoArm5000_ACTIVATE(1, 15, false);
                     sleep(500);
@@ -312,6 +318,26 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
                     DriveRobotPosition(1, -11, false);
                 }
             } else if (startposition == StartPosition.SILVER && depot == Depot.YES) {
+                if (sampling == Sampling.ONE && attemptExtraScore == ExtraScore.YES) {
+                    PivotArmSetRotation(1, 115, false, true);
+                    DriveRobotTurn(1, 20, true);
+                    ExtendoArm5000_ACTIVATE(1, 19, false);
+                    sleep(500);
+                    robot.collectorGate.setPosition(.25);
+                    PivotArmSetRotation(1, -5, false, true);
+                    sleep(200);
+                    PivotArmSetRotation(1, 5, false, true);
+                    sleep(200);
+                    PivotArmSetRotation(1, -5, false, true);
+                    sleep(200);
+                    PivotArmSetRotation(1, 5, false, true);
+                    sleep(200);
+                    robot.collectorGate.setPosition(.65);
+                    PivotArmSetRotation(1, -60, false, true);
+                    sleep(200);
+                    ExtendoArm5000_ACTIVATE(1, -19, true);
+                    DriveRobotTurn(1, -20, true);
+                }
                 DriveRobotPosition(.5, 9.5, true);
                 DriveRobotTurn(.6, -90, true);
                 // Drive to wall then to depot
@@ -323,13 +349,13 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
                 // Deposit team marker
                 DriveRobotTurn(1, -5);
                 robot.markerDumper.setPosition(0.7);
-                if (sampling == Sampling.ONE) {
-                    robot.collectOtron.setPower(.7);
-                    sleep(1000);
-                    robot.collectOtron.setPower(0);
-                } else {
+//                if (sampling == Sampling.ONE) {
+//                    robot.collectOtron.setPower(.7);
+//                    sleep(1000);
+//                    robot.collectOtron.setPower(0);
+//                } else {
                     sleep(250);
-                }
+//                }
 
                 if (sampling == Sampling.ONE && crater == Crater.NEAR) {
                     DriveRobotPosition(1, -50);
@@ -875,6 +901,7 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
         FtcChoiceMenu<Sampling> samplingMenu = new FtcChoiceMenu<>("Number of Samples:", liftMenu, this);
         FtcChoiceMenu<Depot> depotMenu = new FtcChoiceMenu<>("Go for Depot:", samplingMenu, this);
         FtcChoiceMenu<Crater> craterMenu = new FtcChoiceMenu<>("Crater:", depotMenu, this);
+        FtcChoiceMenu<ExtraScore> extraScoreMenu = new FtcChoiceMenu<>("Attempt to score mineral?", craterMenu, this);
 
         modeMenu.addChoice("Auto", RunMode.RUNMODE_AUTO, true, delayMenu);
         modeMenu.addChoice("Debug", RunMode.RUNMODE_DEBUG, false, delayMenu);
@@ -898,6 +925,9 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
         craterMenu.addChoice("Far", Crater.FAR, false);
         craterMenu.addChoice("None", Crater.NONE, false);
 
+        extraScoreMenu.addChoice("Yes", ExtraScore.YES, true);
+        extraScoreMenu.addChoice("No", ExtraScore.NO, false);
+
         FtcMenu.walkMenuTree(modeMenu, this);
         runmode = modeMenu.getCurrentChoiceObject();
         delay = (int) delayMenu.getCurrentValue();
@@ -906,6 +936,7 @@ public class DanielBot_Autonomous_v2 extends LinearOpMode implements FtcMenu.Men
         depot = depotMenu.getCurrentChoiceObject();
         sampling = samplingMenu.getCurrentChoiceObject();
         crater = craterMenu.getCurrentChoiceObject();
+        attemptExtraScore = extraScoreMenu.getCurrentChoiceObject();
 
         dashboard.displayPrintf(9, "Mode: %s (%s)", modeMenu.getCurrentChoiceText(), runmode.toString());
         dashboard.displayPrintf(11, "Delay = %d msec", delay);
