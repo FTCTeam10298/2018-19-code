@@ -161,6 +161,17 @@ public class DanielBot_Hardware
         backRightDrive.setMode(runmode);
     }
 
+    void driveSetRunToPosition()
+    {
+        if (frontLeftDrive.getMode()      != DcMotor.RunMode.RUN_TO_POSITION ||
+                frontRightDrive.getMode() != DcMotor.RunMode.RUN_TO_POSITION ||
+                backLeftDrive.getMode()   != DcMotor.RunMode.RUN_TO_POSITION ||
+                backRightDrive.getMode()  != DcMotor.RunMode.RUN_TO_POSITION) {
+            driveSetMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            driveSetMode(DcMotor.RunMode.RUN_TO_POSITION);
+        }
+    }
+
     /**
      * driveSetMode sets all of the drive train motors to the specified positions.
      * @param flPosition Position to set front left motor to run to
@@ -174,6 +185,14 @@ public class DanielBot_Hardware
         frontRightDrive.setTargetPosition(frPosition);
         backLeftDrive.setTargetPosition(blPosition);
         backRightDrive.setTargetPosition(brPosition);
+    }
+
+    void driveAddTargetPosition(int flPosition, int frPosition, int blPosition, int brPosition)
+    {
+        frontLeftDrive.setTargetPosition(frontLeftDrive.getTargetPosition()+flPosition);
+        frontRightDrive.setTargetPosition(frontRightDrive.getTargetPosition()+frPosition);
+        backLeftDrive.setTargetPosition(backLeftDrive.getTargetPosition()+blPosition);
+        backRightDrive.setTargetPosition(backRightDrive.getTargetPosition()+brPosition);
     }
 
     boolean driveAllAreBusy()
