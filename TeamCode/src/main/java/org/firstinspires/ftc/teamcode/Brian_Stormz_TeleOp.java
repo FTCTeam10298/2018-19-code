@@ -41,15 +41,15 @@ import static java.lang.Math.abs;
  * This file provides Teleop driving for our robot.
  * The code is structured as an Iterative OpMode.
  *
- * This OpMode uses the common DanielBot hardware class to define the devices on the robot.
- * All device access is managed through the FDanielBot_Hardware class.
+ * This OpMode uses the common Brian Stormz hardware class to define the devices on the robot.
+ * All device access is managed through the FBrian_Stormz_Hardware class.
  */
 
-@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name="DanielBot TeleOp Enhanced Tank Drive", group="DanielBot")
-public class DanielBot_TeleOp_EnhancedTankDrive extends OpMode {
+@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name="Brian Stormz TeleOp", group="Brian")
+public class Brian_Stormz_TeleOp extends OpMode {
 
     /* Declare OpMode members. */
-    DanielBot_Hardware robot = new DanielBot_Hardware(); // use the class created to define FutureBot's hardware
+    Brian_Stormz_Hardware robot = new Brian_Stormz_Hardware(); // use the class created to define FutureBot's hardware
 
     double  x = 0;
     double  y = 0;
@@ -111,24 +111,56 @@ public class DanielBot_TeleOp_EnhancedTankDrive extends OpMode {
         } else if (gamepad1.dpad_left || gamepad2.dpad_left) {
             DriveSideways(-.5);
         }
-        // Enhanced Tank Drive
+        // Drone drive
         else {
-            double frontLeftPower;
-            double backLeftPower;
-            double frontRightPower;
-            double backRightPower;
-            if (gamepad2.left_stick_x > 0.1 || gamepad2.left_stick_x < -0.1 || gamepad2.left_stick_y > 0.1 || gamepad2.left_stick_y < -0.1 ||
-                gamepad2.right_stick_x > 0.1 || gamepad2.right_stick_x < -0.1 || gamepad2.right_stick_y > 0.1 || gamepad2.right_stick_y < -0.1) {
-                frontLeftPower  = Range.clip(-gamepad2.left_stick_y + (1 * gamepad2.left_stick_x), -1.0, 1.0);
-                backLeftPower   = Range.clip(-gamepad2.left_stick_y + (-1 * gamepad2.left_stick_x), -1.0, 1.0);
-                frontRightPower = Range.clip(-gamepad2.right_stick_y + (-1 * gamepad2.right_stick_x), -1.0, 1.0);
-                backRightPower  = Range.clip(-gamepad2.right_stick_y + (1 * gamepad2.right_stick_x), -1.0, 1.0);
-            } else {
-                frontLeftPower  = Range.clip(-gamepad1.left_stick_y + (1 * gamepad1.left_stick_x), -1.0, 1.0);
-                backLeftPower   = Range.clip(-gamepad1.left_stick_y + (-1 * gamepad1.left_stick_x), -1.0, 1.0);
-                frontRightPower = Range.clip(-gamepad1.right_stick_y + (-1 * gamepad1.right_stick_x), -1.0, 1.0);
-                backRightPower  = Range.clip(-gamepad1.right_stick_y + (1 * gamepad1.right_stick_x), -1.0, 1.0);
+            if (gamepad1.left_stick_y > .1 || gamepad1.left_stick_y < -.1) {
+                y = gamepad1.left_stick_y;
+            } else if (gamepad2.left_stick_y > .1 || gamepad2.left_stick_y < -.1) {
+                y = gamepad2.left_stick_y;
             }
+            else {
+                y = 0;
+            }
+
+            if (gamepad1.left_stick_x > .1 || gamepad1.left_stick_x < -.1) {
+                x = gamepad1.left_stick_x;
+            } else if (gamepad2.left_stick_x > .1 || gamepad2.left_stick_x < -.1) {
+                x = gamepad2.left_stick_x;
+            }
+            else {
+                x = 0;
+            }
+
+            if (gamepad1.right_stick_x > .1 || gamepad1.right_stick_x < -.1) {
+                z = -gamepad1.right_stick_x / 2;
+            } else if (gamepad2.right_stick_x > .1 || gamepad2.right_stick_x < -.1) {
+                z = -gamepad2.right_stick_x / 2;
+            }
+            else {
+                z = 0;
+            }
+
+            double maxvalue = abs(y + x - z);
+            if (abs(y + x - z) > maxvalue) {
+                maxvalue = abs(y + x - z);
+            }
+            if (abs(y - x + z) > maxvalue) {
+                maxvalue = abs(y - x + z);
+            }
+            if (abs(y + x + z) > maxvalue) {
+                maxvalue = abs(y + x + z);
+            }
+            if (abs(y - x - z) > maxvalue) {
+                maxvalue = abs(y - x - z);
+            }
+            if (maxvalue < 1.0) {
+                maxvalue = 1;
+            }
+
+            double frontLeftPower  = (-1 * Range.clip(((y - x + z) / maxvalue), -1.0, 1.0));
+            double frontRightPower = (-1 * Range.clip(((y + x - z) / maxvalue), -1.0, 1.0));
+            double backLeftPower   = (-1 * Range.clip(((y + x + z) / maxvalue), -1.0, 1.0));
+            double backRightPower  = (-1 * Range.clip(((y - x - z) / maxvalue), -1.0, 1.0));
 
             if ((frontLeftPower > 0.1 || frontRightPower > 0.1 || backLeftPower > 0.1 || backRightPower > 0.1)
                     || (frontLeftPower < -0.1 || frontRightPower < -0.1 || backLeftPower < -0.1 || backRightPower < -0.1))
@@ -142,7 +174,7 @@ public class DanielBot_TeleOp_EnhancedTankDrive extends OpMode {
             }
 
             robot.driveSetPower(frontLeftPower*inertia, frontRightPower*inertia,
-                    backLeftPower*inertia, backRightPower*inertia);
+                                backLeftPower*inertia, backRightPower*inertia);
         }
 
         if (gamepad1.y || gamepad2.y) {

@@ -50,8 +50,8 @@ import hallib.HalDashboard;
 
 import static java.lang.Math.abs;
 
-@Autonomous(name="DanielBot Autonomous", group ="DanielBot")
-public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuButtons {
+@Autonomous(name="Brian Stormz Autonomous", group ="Brian")
+public class Brian_Stormz_Autonomous extends LinearOpMode implements FtcMenu.MenuButtons {
     public enum StartPosition {
         SILVER,
         GOLD
@@ -110,7 +110,7 @@ public class DanielBot_Autonomous extends LinearOpMode implements FtcMenu.MenuBu
 
     /* Declare OpMode members. */
     private HalDashboard dashboard;
-    DanielBot_Hardware robot = new DanielBot_Hardware();
+    Brian_Stormz_Hardware robot = new Brian_Stormz_Hardware();
 
     static final double COUNTS_PER_MOTOR_REV  = 28.0;      // Rev HD Hex v2.1 Motor encoder
     static final double GEARBOX_RATIO         = 20.0;      // 40 for 40:1, 20 for 20:1

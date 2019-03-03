@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.hardware.Servo;
  * This class is used to define all the specific hardware for a single robot.
  */
 
-public class DanielBot_Hardware
+public class Brian_Stormz_Hardware
 {
     // Constant that converts the pivot arm position to degrees (1120*10/360)
     static final double PIVOTARM_CONSTANT = 280.0 / 9.0;
@@ -31,7 +31,7 @@ public class DanielBot_Hardware
     HardwareMap    hwMap              = null;
 
     /* Constructor */
-    public DanielBot_Hardware() {
+    public Brian_Stormz_Hardware() {
 
     }
 
