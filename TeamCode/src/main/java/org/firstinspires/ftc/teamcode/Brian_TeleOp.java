@@ -45,11 +45,11 @@ import static java.lang.Math.abs;
  * All device access is managed through the FBrian_Stormz_Hardware class.
  */
 
-@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name="Brian Stormz TeleOp", group="Brian")
-public class Brian_Stormz_TeleOp extends OpMode {
+@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name="Brian TeleOp", group="Brian")
+public class Brian_TeleOp extends OpMode {
 
     /* Declare OpMode members. */
-    Brian_Stormz_Hardware robot = new Brian_Stormz_Hardware(); // use the class created to define FutureBot's hardware
+    Brian_Hardware robot = new Brian_Hardware(); // use the class created to define FutureBot's hardware
 
     double  x = 0;
     double  y = 0;

@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.hardware.Servo;
  * This class is used to define all the specific hardware for a single robot.
  */
 
-public class Brian_Stormz_Hardware
+public class Brian_Hardware
 {
     // Constant that converts the pivot arm position to degrees (1120*10/360)
     static final double PIVOTARM_CONSTANT = 280.0 / 9.0;
@@ -21,8 +21,10 @@ public class Brian_Stormz_Hardware
     public DcMotor frontRightDrive    = null;
     public DcMotor backRightDrive     = null;
     public DcMotor extendoArm5000     = null;
-    public DcMotor pivotArm1          = null;
-    public DcMotor pivotArm2          = null;
+    public DcMotor pivotArm1initial   = null;
+    public DcMotor pivotArm2initial   = null;
+    public DcMotorEx pivotArm1        = null;
+    public DcMotorEx pivotArm2        = null;
     public DcMotor collectOtron       = null;
     public Servo   collectorGate      = null;
     public Servo   markerDumper       = null;
@@ -31,7 +33,7 @@ public class Brian_Stormz_Hardware
     HardwareMap    hwMap              = null;
 
     /* Constructor */
-    public Brian_Stormz_Hardware() {
+    public Brian_Hardware() {
 
     }
 
@@ -47,10 +49,12 @@ public class Brian_Stormz_Hardware
         backRightDrive = hwMap.dcMotor.get("back_right_drive");
 
         extendoArm5000 = hwMap.dcMotor.get("extendoArm_5000");
-        pivotArm1 = hwMap.dcMotor.get("pivotArm1");
-        pivotArm2 = hwMap.dcMotor.get("pivotArm2");
+        pivotArm1initial = hwMap.dcMotor.get("pivotArm1");
+        pivotArm2initial = hwMap.dcMotor.get("pivotArm2");
         collectOtron = hwMap.dcMotor.get("collectOtron");
 
+        pivotArm1 = (DcMotorEx)pivotArm1initial;
+        pivotArm2 = (DcMotorEx)pivotArm2initial;
 
         // Set direction for all motors
         frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);

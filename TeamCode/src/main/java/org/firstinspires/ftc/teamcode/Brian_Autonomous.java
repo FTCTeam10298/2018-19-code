@@ -50,8 +50,8 @@ import hallib.HalDashboard;
 
 import static java.lang.Math.abs;
 
-@Autonomous(name="Brian Stormz Autonomous", group ="Brian")
-public class Brian_Stormz_Autonomous extends LinearOpMode implements FtcMenu.MenuButtons {
+@Autonomous(name="Brian Autonomous", group ="Brian")
+public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButtons {
     public enum StartPosition {
         SILVER,
         GOLD
@@ -110,7 +110,7 @@ public class Brian_Stormz_Autonomous extends LinearOpMode implements FtcMenu.Men
 
     /* Declare OpMode members. */
     private HalDashboard dashboard;
-    Brian_Stormz_Hardware robot = new Brian_Stormz_Hardware();
+    Brian_Hardware robot = new Brian_Hardware();
 
     static final double COUNTS_PER_MOTOR_REV  = 28.0;      // Rev HD Hex v2.1 Motor encoder
     static final double GEARBOX_RATIO         = 20.0;      // 40 for 40:1, 20 for 20:1
@@ -180,45 +180,6 @@ public class Brian_Stormz_Autonomous extends LinearOpMode implements FtcMenu.Men
             errors += 1;
         }
 
-//        // Motor test (Uncomment out to test drive train encoders)
-//        robot.backRightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//        robot.backLeftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//        robot.frontRightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//        robot.frontLeftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//
-//        robot.backLeftDrive.setPower(0.5);
-//        robot.backRightDrive.setPower(0.5);
-//        robot.frontLeftDrive.setPower(0.5);
-//        robot.frontRightDrive.setPower(0.5);
-//
-//        robot.backRightDrive.setTargetPosition(5000);
-//        while (robot.backRightDrive.isBusy()) {
-//            sleep(10);
-//        }
-//
-//        robot.backLeftDrive.setTargetPosition(5000);
-//        while (robot.backLeftDrive.isBusy()) {
-//            sleep(10);
-//        }
-//
-//        robot.frontRightDrive.setTargetPosition(5000);
-//        while (robot.frontRightDrive.isBusy()) {
-//            sleep(10);
-//        }
-//
-//        robot.frontLeftDrive.setTargetPosition(5000);
-//        while (robot.frontLeftDrive.isBusy()) {
-//            sleep(10);
-//        }
-//
-//
-//        //test spin
-//        DriveRobotTurn(.3, 360);
-//        sleep(1000);
-//        DriveRobotTurn(.3, -360);
-//
-//        DriveRobotHug(1, 48, false);
-
         robot.driveSetMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         robot.driveSetMode(DcMotor.RunMode.RUN_TO_POSITION);
         robot.driveSetTargetPosition(0, 0, 0, 0);
@@ -261,6 +222,56 @@ public class Brian_Stormz_Autonomous extends LinearOpMode implements FtcMenu.Men
          */
 
         dashboard.displayPrintf(0, "Status: Running");
+
+        if (!DoTask("Motor test (run is skip, skip is run)", runmode)) {
+            // Motor test (Uncomment out to test drive train encoders)
+            robot.backRightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            robot.backLeftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            robot.frontRightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            robot.frontLeftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+            robot.backLeftDrive.setPower(0.5);
+            robot.backRightDrive.setPower(0.5);
+            robot.frontLeftDrive.setPower(0.5);
+            robot.frontRightDrive.setPower(0.5);
+
+            robot.backRightDrive.setTargetPosition(5000);
+            while (robot.backRightDrive.isBusy()) {
+                sleep(10);
+            }
+
+            robot.backLeftDrive.setTargetPosition(5000);
+            while (robot.backLeftDrive.isBusy()) {
+                sleep(10);
+            }
+
+            robot.frontRightDrive.setTargetPosition(5000);
+            while (robot.frontRightDrive.isBusy()) {
+                sleep(10);
+            }
+
+            robot.frontLeftDrive.setTargetPosition(5000);
+            while (robot.frontLeftDrive.isBusy()) {
+                sleep(10);
+            }
+
+            // test spin
+            DriveRobotTurn(.3, 360);
+            sleep(1000);
+            DriveRobotTurn(.3, -360);
+
+            DriveRobotHug(1, 48, false);
+        }
+
+        if (runmode == RunMode.RUNMODE_DEBUG)
+            sleep(1000);
+
+        if (!DoTask("Arm Test (run is skip, skip is run)", runmode)) {
+            for (int i = 0; i < 8; i++) {
+                PivotArmSetRotation(1, 90, false, false);
+                PivotArmSetRotation(1, -90, false, false);
+            }
+        }
 
         // Pause the program for the selected delay period
         sleep(delay);
@@ -332,9 +343,9 @@ public class Brian_Stormz_Autonomous extends LinearOpMode implements FtcMenu.Men
                     DriveRobotPosition(1, 30, false);
                 }
                 else if (crater == Crater.NEAR) {
-                    DriveRobotTurn(.5, 90);
+                    DriveRobotTurn(.5, 87);
                     DriveRobotPosition(.8, 50, true);
-                    DriveRobotTurn(1, 40, false);
+                    DriveRobotTurn(1, 45, false);
                     ExtendoArm5000_ACTIVATE(1, 10, true);
                     DriveRobotPosition(1, 11, false);
                 }
@@ -707,18 +718,18 @@ public class Brian_Stormz_Autonomous extends LinearOpMode implements FtcMenu.Men
         robot.collectOtron.setPower(1);
         if (gold != Gold.CENTER) {
             if (gold == Gold.LEFT)
-                DriveRobotTurn(.6, -32, true);
+                DriveRobotTurn(.6, -30, true);
             else if (gold == Gold.RIGHT)
-                DriveRobotTurn(.6, 32, true);
+                DriveRobotTurn(.6, 30, true);
             DriveRobotPosition(.6, 24, true);
             if (startposition == StartPosition.SILVER && depot == Depot.NO && crater == Crater.NEAR)
                 DriveRobotPosition(1, 15, false);
             else {
                 DriveRobotPosition(.6, -24, true);
                 if (gold == Gold.LEFT)
-                    DriveRobotTurn(.6, 35, true);
+                    DriveRobotTurn(.6, 33, true);
                 else if (gold == Gold.RIGHT)
-                    DriveRobotTurn(.6, -32, true);
+                    DriveRobotTurn(.6, -30, true);
             }
         } else { // gold == Gold.CENTER
             DriveRobotPosition(.6, 20, true);
@@ -760,10 +771,18 @@ public class Brian_Stormz_Autonomous extends LinearOpMode implements FtcMenu.Men
         if (asynkk)
             return;
 
-        for (int i=0; i < 2; i++) {    // Repeat check 5 times, sleeping 10ms between,
-            // as isBusy can be a bit unreliable
+        sleep(150);
+
+        for (int i=0; i < 2; i++) {    // Repeat check 3 times, sleeping 10ms between,
+                                       // as isBusy can be a bit unreliable
             while (robot.pivotArm1.isBusy() && robot.pivotArm2.isBusy()) {
-                dashboard.displayPrintf(10, "The ENEMY gates are down!");
+                dashboard.displayPrintf(10, "pivotArm1: %d target, %d current", robot.pivotArm1.getTargetPosition(), robot.pivotArm1.getCurrentPosition());
+                dashboard.displayPrintf(11, "pivotArm2: %d target, %d current", robot.pivotArm2.getTargetPosition(), robot.pivotArm2.getCurrentPosition());
+                if ((robot.pivotArm1.getVelocity() < 10 && robot.pivotArm1.getVelocity() > -10) &&
+                        (robot.pivotArm2.getVelocity() < 10 && robot.pivotArm2.getVelocity() > -10)) {
+                    dashboard.displayPrintf(12, "WARNING: FAILSAFE INVOKED ON pivotArmSetRotation()");
+                    break;
+                }
             }
             sleep(10);
         }
