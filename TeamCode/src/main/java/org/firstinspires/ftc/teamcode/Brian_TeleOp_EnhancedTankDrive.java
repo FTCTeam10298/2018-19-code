@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2018, FTC team #10298 Brain Stormz
+Copyright (c) 2016-19, FTC team #10298 Brain Stormz
 
 All rights reserved.
 

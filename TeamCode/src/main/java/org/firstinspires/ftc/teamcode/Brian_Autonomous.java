@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 Brain Stormz. All rights reserved.
+/* Copyright (c) 2016-19 Brain Stormz. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted (subject to the limitations in the disclaimer below) provided that
@@ -295,17 +295,17 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
         }
 
         if (startposition == StartPosition.GOLD && depot == Depot.YES && DoTask("Deposit team marker (gold)", runmode)) {
-            ExtendoArm5000_ACTIVATE(1, 21, true);
-            DriveRobotPosition(0.75, 13, true);
+            ExtendoArm5000_ACTIVATE(1, 22, true);
+            DriveRobotPosition(0.4, 13, true);
             ExtendoArm5000_ACTIVATE(1, 0, false); // Wait for extension to finish
             PivotArmSetRotation(1, -10, false, true);
 
-            robot.collectOtron.setPower(.7);
+            robot.collectOtron.setPower(.4);
             sleep(1000);
             robot.collectOtron.setPower(0);
 
             PivotArmSetRotation(1, 10, false, true);
-            ExtendoArm5000_ACTIVATE(1, -20, true);
+            ExtendoArm5000_ACTIVATE(1, -21, true);
             DriveRobotPosition(0.75, -13, true);
             ExtendoArm5000_ACTIVATE(1, 0, false); // Wait for extension to finish
             PivotArmSetRotation(1, -25, false, true);
@@ -318,7 +318,7 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
             if (startposition == StartPosition.GOLD) {
                 if (sampling == Sampling.ONE && attemptExtraScore == ExtraScore.YES) {
                     PivotArmSetRotation(1, 115, false, true);
-                    ExtendoArm5000_ACTIVATE(1, 15, false);
+                    ExtendoArm5000_ACTIVATE(1, 16, false);
                     PivotArmSetRotation(1, 0, false, false);
                     robot.collectorGate.setPosition(.25);
                     PivotArmSetRotation(0.5, -5, false, true);
@@ -328,7 +328,7 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
                     PivotArmSetRotation(1, -60, false, true);
                     sleep(400);
                     robot.collectorGate.setPosition(.65);
-                    ExtendoArm5000_ACTIVATE(1, -15, true);
+                    ExtendoArm5000_ACTIVATE(1, -16, true);
                 } else {
                     PivotArmSetRotation(1, 55, false, true);
                 }
@@ -356,12 +356,17 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
                     DriveRobotTurn(1, 20, true);
                     ExtendoArm5000_ACTIVATE(1, 0, false);
                     PivotArmSetRotation(0.8, 0, false, false);
-                    sleep(500);
+                    sleep(200);
                     robot.collectorGate.setPosition(.25);
-                    PivotArmSetRotation(0.5, -5, false, true);
                     sleep(300);
-                    PivotArmSetRotation(0.5, 5, false, true);
-                    sleep(300);
+                    robot.collectorGate.setPosition(.45);
+                    sleep(200);
+                    robot.collectorGate.setPosition(.25);
+                    sleep(900);
+//                    PivotArmSetRotation(0.5, -5, false, true);
+//                    sleep(300);
+//                    PivotArmSetRotation(0.5, 5, false, true);
+//                    sleep(300);
                     robot.collectorGate.setPosition(.65);
                     PivotArmSetRotation(1, -60, false, true);
                     sleep(400);
@@ -718,18 +723,18 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
         robot.collectOtron.setPower(1);
         if (gold != Gold.CENTER) {
             if (gold == Gold.LEFT)
-                DriveRobotTurn(.6, -30, true);
+                DriveRobotTurn(.6, -34, true);
             else if (gold == Gold.RIGHT)
-                DriveRobotTurn(.6, 30, true);
+                DriveRobotTurn(.6, 34, true);
             DriveRobotPosition(.6, 24, true);
             if (startposition == StartPosition.SILVER && depot == Depot.NO && crater == Crater.NEAR)
                 DriveRobotPosition(1, 15, false);
             else {
                 DriveRobotPosition(.6, -24, true);
                 if (gold == Gold.LEFT)
-                    DriveRobotTurn(.6, 33, true);
+                    DriveRobotTurn(.6, 36, true);
                 else if (gold == Gold.RIGHT)
-                    DriveRobotTurn(.6, -30, true);
+                    DriveRobotTurn(.6, -34, true);
             }
         } else { // gold == Gold.CENTER
             DriveRobotPosition(.6, 20, true);
