@@ -320,6 +320,7 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
                     PivotArmSetRotation(1, 115, false, true);
                     ExtendoArm5000_ACTIVATE(1, 16, false);
                     PivotArmSetRotation(1, 0, false, false);
+                    DriveRobotTurn(0.5, 10, true);
                     robot.collectorGate.setPosition(.25);
                     PivotArmSetRotation(0.5, -5, false, true);
                     sleep(300);
@@ -329,6 +330,7 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
                     sleep(400);
                     robot.collectorGate.setPosition(.65);
                     ExtendoArm5000_ACTIVATE(1, -16, true);
+                    DriveRobotTurn(0.5, -10, true);
                 } else {
                     PivotArmSetRotation(1, 55, false, true);
                 }
@@ -344,7 +346,7 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
                 }
                 else if (crater == Crater.NEAR) {
                     DriveRobotTurn(.5, 87);
-                    DriveRobotPosition(.8, 50, true);
+                    DriveRobotPosition(.8, 48, true);
                     DriveRobotTurn(1, 45, false);
                     ExtendoArm5000_ACTIVATE(1, 10, true);
                     DriveRobotPosition(1, 11, false);
