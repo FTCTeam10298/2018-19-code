@@ -93,6 +93,8 @@ public class Brian_TeleOp extends OpMode {
         telemetry.addData("Loop Time", "%f", dt);
         telemetry.addData("Inertia", "%f", inertia);
         telemetry.addData("Arm power", "%f", robot.pivotArm1.getPower());
+        telemetry.addData("Arm position (raw)", robot.potentiometer.getVoltage());
+        telemetry.addData("Arm position (degrees)", robot.pivotArmGetPosition());
         if (quickmodeACTIVE)
             telemetry.addData("Arm QuickMode", "Enabled");
         else

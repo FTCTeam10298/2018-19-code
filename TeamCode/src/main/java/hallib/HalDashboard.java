@@ -50,7 +50,7 @@ public class HalDashboard
     private static final TrcDbgTrace.MsgLevel msgLevel = TrcDbgTrace.MsgLevel.INFO;
     private TrcDbgTrace dbgTrace = null;
 
-    public static final int DEF_NUM_TEXTLINES = 16;
+    public static final int DEF_NUM_TEXTLINES = 21;
 
     private static final String displayKeyFormat = "%02d";
     private static HalDashboard instance = null;

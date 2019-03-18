@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -28,6 +29,7 @@ public class Brian_Hardware
     public DcMotor collectOtron       = null;
     public Servo   collectorGate      = null;
     public Servo   markerDumper       = null;
+    public AnalogInput potentiometer  = null;
 
     /* Local OpMode members. */
     HardwareMap    hwMap              = null;
@@ -112,6 +114,10 @@ public class Brian_Hardware
 
         collectorGate.setPosition(.65);
         markerDumper.setPosition(0);
+
+        // Initialize arm position sensor
+        potentiometer = hwMap.get(AnalogInput.class, "potentiometer");
+
     }
 
     /**
@@ -121,13 +127,13 @@ public class Brian_Hardware
      * @param milliseconds amount of time to sleep, in milliseconds
      * @see Thread#sleep(long)
      */
-    public final void sleep(long milliseconds) {
-        try {
-            Thread.sleep(milliseconds);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-    }
+//    public final void sleep(long milliseconds) {
+//        try {
+//            Thread.sleep(milliseconds);
+//        } catch (InterruptedException e) {
+//            Thread.currentThread().interrupt();
+//        }
+//    }
 
     /**
      * DrivePowerAll sets all of the drive train motors to the specified power level.
@@ -203,6 +209,12 @@ public class Brian_Hardware
     {
         return frontLeftDrive.isBusy() && frontRightDrive.isBusy() && backLeftDrive.isBusy()
                 && backRightDrive.isBusy();
+    }
+
+    double pivotArmGetPosition()
+    {
+        // Sensor returns voltage from 0 to 3.34, normalize to a range of 0-1, then multiply by potentiometer range
+        return potentiometer.getVoltage() / 3.34 * 270;
     }
 }
 

@@ -83,6 +83,8 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
     public enum Crater {
         NEAR,
         FAR,
+        NEAR_DEFENSE,
+        FAR_DEFENSE,
         NONE
     }
 
@@ -335,6 +337,9 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
                     PivotArmSetRotation(1, 55, false, true);
                 }
 
+                if (crater == Crater.FAR_DEFENSE)
+                    PivotArmSetRotation(1, -55, false, false);
+
                 DriveRobotPosition(1, 8, true);
 
                 if (crater == Crater.FAR) {
@@ -350,6 +355,20 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
                     DriveRobotTurn(1, 45, false);
                     ExtendoArm5000_ACTIVATE(1, 10, true);
                     DriveRobotPosition(1, 11, false);
+                }
+                else if (crater == Crater.NEAR_DEFENSE) {
+                    DriveRobotPosition(1, -10, true);
+                    DriveRobotTurn(1, -45, true);
+                    DriveRobotPosition(1, -72, true);
+                    DriveRobotTurn(1, 90, true);
+                    DriveRobotPosition(1, 4, true);
+                }
+                else if (crater == Crater.FAR_DEFENSE) {
+                    DriveRobotPosition(1, -10, true);
+                    DriveRobotTurn(1, 45, true);
+                    DriveRobotPosition(1, -72, true);
+                    DriveRobotTurn(1, -90, true);
+                    DriveRobotPosition(1, 4, true);
                 }
             } else if (startposition == StartPosition.SILVER && depot == Depot.YES) {
                 if (sampling == Sampling.ONE && attemptExtraScore == ExtraScore.YES) {
@@ -840,6 +859,7 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
             int i = 0;
             ElapsedTime holdTimer = new ElapsedTime();
             while (!opModeIsActive() && !isStopRequested() && (holdTimer.time() < 3)) {
+                int j = 0;
                 if (tfod != null) {
                     // getUpdatedRecognitions() will return null if no new information is available since
                     // the last time that call was made.
@@ -847,67 +867,66 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
                     if (updatedRecognitions != null) {
                         dashboard.displayPrintf(1,"%d objects detected", updatedRecognitions.size());
                         if (updatedRecognitions.size() >= 1) {
-                            double    left = Math.random()/2;
-                            double    right = Math.random()/2;
-                            double    center = Math.random()/2;
-                            int       vote = 0;
-                            int       gold = 0;
-                            int       silver = 0;
-                            final int WIDTH = updatedRecognitions.get(0).getImageWidth();
+                            double    left   = 0;
+                            double    right  = 0;
+                            double    center = 0;
+                            double    vote   = 0;
+                            int       gold   = 0;   // How many gold minerals are detected
+                            int       silver = 0; // How many silver minerals are detected
+                            final int WIDTH  = updatedRecognitions.get(0).getImageWidth();
 
                             for (Recognition recognition : updatedRecognitions) {
                                 if (recognition.getLabel().equals(LABEL_GOLD_MINERAL)) {
-                                    vote++;
+                                    vote+=recognition.getConfidence();
                                     gold++;
                                 } else {
-                                    vote--;
+                                    vote-=recognition.getConfidence();
                                     if (recognition.getLabel().equals(LABEL_SILVER_MINERAL))
                                         silver++;
                                 }
                                 if ((int) recognition.getLeft() < WIDTH/3)
-                                    left+=vote;
+                                    right+=vote;
                                 else if ((int) recognition.getLeft() < 2*WIDTH/3)
                                     center+=vote;
                                 else
-                                    right+=vote;
+                                    left+=vote;
                                 vote=0;
                             }
                             dashboard.displayPrintf(1,"%d objects detected (%d gold, %d silver)", updatedRecognitions.size(), gold, silver);
+                            for (j = 0; j < updatedRecognitions.size(); j++) {
+                                if (updatedRecognitions.get(j).getLabel().equals(LABEL_GOLD_MINERAL))
+                                    dashboard.displayPrintf(j+3, "Gold (x = %f, y = %f)",
+                                            (updatedRecognitions.get(j).getLeft()+updatedRecognitions.get(j).getRight())/2,
+                                            (updatedRecognitions.get(j).getLeft()+updatedRecognitions.get(j).getRight())/2);
+                                else
+                                    dashboard.displayPrintf(j+3, "Silver (x = %f, y = %f)",
+                                            (updatedRecognitions.get(j).getLeft()+updatedRecognitions.get(j).getRight())/2,
+                                            (updatedRecognitions.get(j).getLeft()+updatedRecognitions.get(j).getRight())/2);
+                            }
                             if (left > center && left > right) {
                                 thisgold = Gold.LEFT;
                                 if (left > .5) {
-                                    dashboard.displayPrintf(2, "Left");
-                                    break;
+                                    dashboard.displayPrintf(9, "Gold: Left");
                                 }
                             }
                             else if (center > right) {
                                 thisgold = Gold.CENTER;
                                 if (center > .5) {
-                                    dashboard.displayPrintf(2, "Center");
-                                    break;
+                                    dashboard.displayPrintf(9, "Gold: Center");
                                 }
                             }
                             else {
                                 thisgold = Gold.RIGHT;
                                 if (right > .5) {
-                                    dashboard.displayPrintf(2, "Right");
-                                    break;
+                                    dashboard.displayPrintf(9, "Gold: Right");
                                 }
                             }
                         }
                     }
                 }
                 i++;
-                dashboard.displayPrintf(2, "TensorFlow iteration count: %d", i);
+                dashboard.displayPrintf(10, "TensorFlow iteration count: %d", i);
             }
-        }
-
-        // If hanging, invert right/left because camera is upside-down
-        if (hanging == Lift.YES) {
-            if (thisgold== Gold.RIGHT)
-                thisgold= Gold.LEFT;
-            else if (thisgold== Gold.LEFT)
-                thisgold= Gold.RIGHT;
         }
         return thisgold;
     }
@@ -961,7 +980,7 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
         FtcChoiceMenu<Sampling> samplingMenu = new FtcChoiceMenu<>("Number of Samples:", liftMenu, this);
         FtcChoiceMenu<Depot> depotMenu = new FtcChoiceMenu<>("Go for Depot:", samplingMenu, this);
         FtcChoiceMenu<Crater> craterMenu = new FtcChoiceMenu<>("Crater:", depotMenu, this);
-        FtcChoiceMenu<ExtraScore> extraScoreMenu = new FtcChoiceMenu<>("Attempt to score mineral?", craterMenu, this);
+        FtcChoiceMenu<ExtraScore> extraScoreMenu = new FtcChoiceMenu<>("Attempt to score mineral:", craterMenu, this);
 
         modeMenu.addChoice("Auto", RunMode.RUNMODE_AUTO, true, delayMenu);
         modeMenu.addChoice("Debug", RunMode.RUNMODE_DEBUG, false, delayMenu);
@@ -983,6 +1002,8 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
 
         craterMenu.addChoice("Near", Crater.NEAR, true, extraScoreMenu);
         craterMenu.addChoice("Far", Crater.FAR, false, extraScoreMenu);
+        craterMenu.addChoice("Near Defense", Crater.NEAR_DEFENSE, false, extraScoreMenu);
+        craterMenu.addChoice("Far Defense", Crater.FAR_DEFENSE, false, extraScoreMenu);
         craterMenu.addChoice("None", Crater.NONE, false, extraScoreMenu);
 
         extraScoreMenu.addChoice("Yes", ExtraScore.YES, true);
@@ -998,14 +1019,14 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
         crater = craterMenu.getCurrentChoiceObject();
         attemptExtraScore = extraScoreMenu.getCurrentChoiceObject();
 
-        dashboard.displayPrintf(10, "Mode: %s (%s)", modeMenu.getCurrentChoiceText(), runmode.toString());
-        dashboard.displayPrintf(11, "Delay = %d msec", delay);
-        dashboard.displayPrintf(12, "Start position: %s (%s)", startPositionMenu.getCurrentChoiceText(), startposition.toString());
-        dashboard.displayPrintf(13, "Hanging: %s (%s)", liftMenu.getCurrentChoiceText(), hanging.toString());
-        dashboard.displayPrintf(14, "Number of samples: %s (%s)", samplingMenu.getCurrentChoiceText(), sampling.toString());
-        dashboard.displayPrintf(15, "Go for depot: %s (%s)", depotMenu.getCurrentChoiceText(), depot.toString());
-        dashboard.displayPrintf(16, "Crater: %s (%s)", craterMenu.getCurrentChoiceText(), crater.toString());
-        dashboard.displayPrintf(17, "Attempt score: %s (%s)", extraScoreMenu.getCurrentChoiceText(), attemptExtraScore.toString());
+        dashboard.displayPrintf(13, "Mode: %s (%s)", modeMenu.getCurrentChoiceText(), runmode.toString());
+        dashboard.displayPrintf(14, "Delay = %d msec", delay);
+        dashboard.displayPrintf(15, "Start position: %s (%s)", startPositionMenu.getCurrentChoiceText(), startposition.toString());
+        dashboard.displayPrintf(16, "Hanging: %s (%s)", liftMenu.getCurrentChoiceText(), hanging.toString());
+        dashboard.displayPrintf(17, "Number of samples: %s (%s)", samplingMenu.getCurrentChoiceText(), sampling.toString());
+        dashboard.displayPrintf(18, "Go for depot: %s (%s)", depotMenu.getCurrentChoiceText(), depot.toString());
+        dashboard.displayPrintf(19, "Crater: %s (%s)", craterMenu.getCurrentChoiceText(), crater.toString());
+        dashboard.displayPrintf(20, "Attempt score: %s (%s)", extraScoreMenu.getCurrentChoiceText(), attemptExtraScore.toString());
     }
     // END MENU ------------------------------------------------------------------------------------
 }
