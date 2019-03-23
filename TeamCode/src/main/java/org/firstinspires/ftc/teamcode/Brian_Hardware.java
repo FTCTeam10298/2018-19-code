@@ -66,7 +66,7 @@ public class Brian_Hardware
 
         extendoArm5000.setDirection(DcMotor.Direction.REVERSE);
         pivotArm1.setDirection(DcMotor.Direction.REVERSE);
-        pivotArm2.setDirection(DcMotor.Direction.REVERSE);
+        pivotArm2.setDirection(DcMotor.Direction.FORWARD);
         collectOtron.setDirection(DcMotor.Direction.REVERSE);
 
 
