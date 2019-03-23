@@ -117,13 +117,13 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
     static final double COUNTS_PER_MOTOR_REV  = 28.0;      // Rev HD Hex v2.1 Motor encoder
     static final double GEARBOX_RATIO         = 20.0;      // 40 for 40:1, 20 for 20:1
     static final double DRIVE_GEAR_REDUCTION  = 24.0/15.0; // This is > 1.0 if geared for torque
-    static final double WHEEL_DIAMETER_INCHES = 4.0;       // For figuring circumference
+    static final double WHEEL_DIAMETER_INCHES = 3.937007874015748; // For figuring circumference
     static final double DRIVETRAIN_ERROR      = 1.04;      // Error determined from testing
     static final double COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * GEARBOX_RATIO * DRIVE_GEAR_REDUCTION) /
             (WHEEL_DIAMETER_INCHES * Math.PI) / DRIVETRAIN_ERROR;
-    static final double COUNTS_PER_DEGREE     = COUNTS_PER_INCH*0.20672; // Found by testing
+    static final double COUNTS_PER_DEGREE     = (COUNTS_PER_INCH*0.20672)+0.003703704; // Was 0.20672; // Found by testing
 
-    static final double PIVOTARM_CONSTANT     = 1440.0 * 10.0 / 360.0; // Constant that converts pivot arm to degrees (1120*10/360 for Rev 40:1)
+    static final double PIVOTARM_CONSTANT     = (1440.0 * 10.0 / 360.0)*(0.6667); // Constant that converts pivot arm to degrees (1120*10/360 for Rev 40:1)
     static final double EXTENDOARM_CONSTANT   = 1120.0 * 2.0 * 15.0 / 25.0 / (3. * Math.PI); // Constant that converts ExtendoArm to inches 1120 * 2/(3 * 3.14159265)
 
     ModernRoboticsI2cRangeSensor rangeSensor;
@@ -273,6 +273,27 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
                 PivotArmSetRotation(1, 90, false, false);
                 PivotArmSetRotation(1, -90, false, false);
             }
+        }
+
+        if (runmode == RunMode.RUNMODE_DEBUG)
+            sleep(1000);
+
+        if (!DoTask("Spin test - clockwise (run is skip, skip is run)", runmode)) {
+            DriveRobotTurn(.2, 360*15);
+        }
+
+        if (runmode == RunMode.RUNMODE_DEBUG)
+            sleep(1000);
+
+        if (!DoTask("Spin test - counter-clockwise (run is skip, skip is run)", runmode)) {
+            DriveRobotTurn(.2, -360*15);
+        }
+
+        if (runmode == RunMode.RUNMODE_DEBUG)
+            sleep(1000);
+
+        if (!DoTask("Drive test (72 inches)", runmode)) {
+            DriveRobotPosition(.2, 72, false);
         }
 
         // Pause the program for the selected delay period
@@ -609,9 +630,6 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
     void DriveRobotTurn (double power, double degree, boolean smart_accel)
     {
         double position = degree*COUNTS_PER_DEGREE;
-        //FIXME: left turns overshoot
-        if (degree > 0)
-            position *= .9;
 
         int state = 0; // 0 = NONE, 1 = ACCEL, 2 = DRIVE, 3 = DECEL
 

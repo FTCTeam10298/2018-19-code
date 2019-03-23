@@ -66,8 +66,8 @@ public class Brian_TeleOp extends OpMode {
     boolean collectOtronSWITCHING  = false;
     boolean collectOtronREVERSE    = false;
     boolean refinatorACTIVE        = false;
-    boolean quickmodeSWITCHING     = false;
-    boolean quickmodeACTIVE        = false;
+    boolean endGameModeSWITCHING   = false;
+    boolean endGameModeACTIVE      = false;
 
     // Code to run once when the driver hits INIT
     @Override
@@ -95,10 +95,10 @@ public class Brian_TeleOp extends OpMode {
         telemetry.addData("Arm power", "%f", robot.pivotArm1.getPower());
         telemetry.addData("Arm position (raw)", robot.potentiometer.getVoltage());
         telemetry.addData("Arm position (degrees)", robot.pivotArmGetPosition());
-        if (quickmodeACTIVE)
-            telemetry.addData("Arm QuickMode", "Enabled");
+        if (!endGameModeACTIVE)
+            telemetry.addData("Arm Coast Mode", "Enabled");
         else
-            telemetry.addData("Arm QuickMode", "Disabled");
+            telemetry.addData("Arm Coast Mode", "Disabled");
 
         // Send telemetry message to signify robot running
         telemetry.addData("Say", "N8 is the gr8est without deb8");
@@ -214,7 +214,7 @@ public class Brian_TeleOp extends OpMode {
 //                    robot.pivotArm2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 //                }
 //            }
-            if (quickmodeACTIVE) {
+            if (endGameModeACTIVE) {
                 robot.pivotArm1.setPower(0);
                 robot.pivotArm2.setPower(0);
             }
@@ -224,14 +224,14 @@ public class Brian_TeleOp extends OpMode {
         }
 
         if (gamepad1.left_stick_button || gamepad1.right_stick_button || gamepad2.left_stick_button || gamepad2.right_stick_button) {
-            quickmodeSWITCHING = true;
+            endGameModeSWITCHING = true;
         }
-        else if (quickmodeSWITCHING) {
-            quickmodeSWITCHING = false;
-            if (quickmodeACTIVE)
-                quickmodeACTIVE = false;
+        else if (endGameModeSWITCHING) {
+            endGameModeSWITCHING = false;
+            if (endGameModeACTIVE)
+                endGameModeACTIVE = false;
             else
-                quickmodeACTIVE = true;
+                endGameModeACTIVE = true;
         }
 
         if (gamepad1.right_trigger > 0)
