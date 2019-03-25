@@ -225,7 +225,7 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
 
         dashboard.displayPrintf(0, "Status: Running");
 
-        if (!DoTask("Motor test (run is skip, skip is run)", runmode)) {
+        if (DoTask("Motor test", runmode, false)) {
             // Motor test (Uncomment out to test drive train encoders)
             robot.backRightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             robot.backLeftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -265,34 +265,22 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
             DriveRobotHug(1, 48, false);
         }
 
-        if (runmode == RunMode.RUNMODE_DEBUG)
-            sleep(1000);
-
-        if (!DoTask("Arm Test (run is skip, skip is run)", runmode)) {
+        if (DoTask("Arm Test", runmode, false)) {
             for (int i = 0; i < 8; i++) {
                 PivotArmSetRotation(1, 90, false, false);
                 PivotArmSetRotation(1, -90, false, false);
             }
         }
 
-        if (runmode == RunMode.RUNMODE_DEBUG)
-            sleep(1000);
-
-        if (!DoTask("Spin test - clockwise (run is skip, skip is run)", runmode)) {
+        if (DoTask("Spin test - clockwise", runmode, false)) {
             DriveRobotTurn(.2, 360*15);
         }
 
-        if (runmode == RunMode.RUNMODE_DEBUG)
-            sleep(1000);
-
-        if (!DoTask("Spin test - counter-clockwise (run is skip, skip is run)", runmode)) {
+        if (DoTask("Spin test - counter-clockwise", runmode, false)) {
             DriveRobotTurn(.2, -360*15);
         }
 
-        if (runmode == RunMode.RUNMODE_DEBUG)
-            sleep(1000);
-
-        if (!DoTask("Drive test (72 inches)", runmode)) {
+        if (DoTask("Drive test (72 inches)", runmode, false)) {
             DriveRobotPosition(.2, 72, false);
         }
 
@@ -300,10 +288,10 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
         sleep(delay);
 
         // Init
-        if (DoTask("Init", runmode)) {
+        if (DoTask("Init", runmode, true)) {
             if (hanging == Lift.YES) {
                 ExtendoArm5000_ACTIVATE(1,5, false);
-                PivotArmSetRotation(.5, -20, false, false);
+                PivotArmSetRotation(1, -20, false, false);
                 PivotArmSetRotation(.5, 95, true, false);
                 DriveRobotPosition(.6, 8, true);
                 ExtendoArm5000_ACTIVATE(1,-1.5, true);
@@ -313,11 +301,11 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
                     PivotArmSetRotation(1, -88, false, false);
                 }
             } else {
-                DriveRobotPosition(1, 10, true); // FIXME: IS THIS RIGHT?
+                DriveRobotPosition(.6, 8, true); // FIXME: IS THIS RIGHT?
             }
         }
 
-        if (startposition == StartPosition.GOLD && depot == Depot.YES && DoTask("Deposit team marker (gold)", runmode)) {
+        if (startposition == StartPosition.GOLD && depot == Depot.YES && DoTask("Deposit team marker (gold)", runmode, true)) {
             ExtendoArm5000_ACTIVATE(1, 22, true);
             DriveRobotPosition(0.4, 13, true);
             ExtendoArm5000_ACTIVATE(1, 0, false); // Wait for extension to finish
@@ -329,21 +317,21 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
 
             PivotArmSetRotation(1, 10, false, true);
             ExtendoArm5000_ACTIVATE(1, -21, true);
-            DriveRobotPosition(0.75, -13, true);
-            ExtendoArm5000_ACTIVATE(1, 0, false); // Wait for extension to finish
+            DriveRobotPosition(0.4, -13, true);
+            ExtendoArm5000_ACTIVATE(1, 0, false); // Wait for retraction to finish
             PivotArmSetRotation(1, -25, false, true);
         }
 
-        if ((sampling == Sampling.ONE || sampling == Sampling.TWO) && DoTask("Mineral Sampling", runmode))
+        if ((sampling == Sampling.ONE || sampling == Sampling.TWO) && DoTask("Mineral Sampling", runmode, true))
             DriveSample();
 
-        if (DoTask("Drive my Car", runmode)) {
+        if (DoTask("Drive my Car", runmode, true)) {
             if (startposition == StartPosition.GOLD) {
                 if (sampling == Sampling.ONE && attemptExtraScore == ExtraScore.YES) {
                     PivotArmSetRotation(1, 115, false, true);
                     ExtendoArm5000_ACTIVATE(1, 16, false);
                     PivotArmSetRotation(1, 0, false, false);
-                    DriveRobotTurn(0.5, 10, true);
+                    //DriveRobotTurn(0.5, 10, true);
                     robot.collectorGate.setPosition(.25);
                     PivotArmSetRotation(0.5, -5, false, true);
                     sleep(300);
@@ -353,7 +341,7 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
                     sleep(400);
                     robot.collectorGate.setPosition(.65);
                     ExtendoArm5000_ACTIVATE(1, -16, true);
-                    DriveRobotTurn(0.5, -10, true);
+                    //DriveRobotTurn(0.5, -10, true);
                 } else {
                     PivotArmSetRotation(1, 55, false, true);
                 }
@@ -361,7 +349,7 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
                 if (crater == Crater.FAR_DEFENSE)
                     PivotArmSetRotation(1, -55, false, false);
 
-                DriveRobotPosition(1, 8, true);
+                DriveRobotPosition(.6, 8, true);
 
                 if (crater == Crater.FAR) {
                     DriveRobotTurn(.5, -70);
@@ -378,14 +366,14 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
                     DriveRobotPosition(1, 11, false);
                 }
                 else if (crater == Crater.NEAR_DEFENSE) {
-                    DriveRobotPosition(1, -10, true);
+                    DriveRobotPosition(1, -15, true);
                     DriveRobotTurn(1, -45, true);
                     DriveRobotPosition(1, -72, true);
                     DriveRobotTurn(1, 90, true);
                     DriveRobotPosition(1, 4, true);
                 }
                 else if (crater == Crater.FAR_DEFENSE) {
-                    DriveRobotPosition(1, -10, true);
+                    DriveRobotPosition(1, -15, true);
                     DriveRobotTurn(1, 45, true);
                     DriveRobotPosition(1, -72, true);
                     DriveRobotTurn(1, -90, true);
@@ -503,7 +491,7 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
      * FUNCTIONS -----------------------------------------------------------------------------------
      */
 
-    boolean DoTask (String taskname, RunMode debug)
+    boolean DoTask(String taskname, RunMode debug, boolean default_value)
     {
         dashboard.displayPrintf(0, taskname);
         if (debug == RunMode.RUNMODE_DEBUG)
@@ -521,7 +509,7 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
                 }
             }
         }
-        return true;
+        return default_value;
     }
 
     /**
@@ -762,18 +750,18 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
         robot.collectOtron.setPower(1);
         if (gold != Gold.CENTER) {
             if (gold == Gold.LEFT)
-                DriveRobotTurn(.6, -34, true);
+                DriveRobotTurn(.6, -35, true);
             else if (gold == Gold.RIGHT)
-                DriveRobotTurn(.6, 34, true);
+                DriveRobotTurn(.6, 35, true);
             DriveRobotPosition(.6, 24, true);
             if (startposition == StartPosition.SILVER && depot == Depot.NO && crater == Crater.NEAR)
                 DriveRobotPosition(1, 15, false);
             else {
                 DriveRobotPosition(.6, -24, true);
                 if (gold == Gold.LEFT)
-                    DriveRobotTurn(.6, 36, true);
+                    DriveRobotTurn(.6, 35, true);
                 else if (gold == Gold.RIGHT)
-                    DriveRobotTurn(.6, -34, true);
+                    DriveRobotTurn(.6, -35, true);
             }
         } else { // gold == Gold.CENTER
             DriveRobotPosition(.6, 20, true);
