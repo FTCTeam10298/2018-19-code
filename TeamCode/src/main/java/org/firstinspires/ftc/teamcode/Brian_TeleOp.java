@@ -66,8 +66,6 @@ public class Brian_TeleOp extends OpMode {
     boolean collectOtronSWITCHING  = false;
     boolean collectOtronREVERSE    = false;
     boolean refinatorACTIVE        = false;
-    boolean endGameModeSWITCHING   = false;
-    boolean endGameModeACTIVE      = false;
 
     // Code to run once when the driver hits INIT
     @Override
@@ -95,10 +93,6 @@ public class Brian_TeleOp extends OpMode {
         telemetry.addData("Arm power", "%f", robot.pivotArm1.getPower());
         telemetry.addData("Arm position (raw)", robot.potentiometer.getVoltage());
         telemetry.addData("Arm position (degrees)", robot.pivotArmGetPosition());
-        if (!endGameModeACTIVE)
-            telemetry.addData("Arm Coast Mode", "Enabled");
-        else
-            telemetry.addData("Arm Coast Mode", "Disabled");
 
         // Send telemetry message to signify robot running
         telemetry.addData("Say", "N8 is the gr8est without deb8");
@@ -201,37 +195,8 @@ public class Brian_TeleOp extends OpMode {
             direction = -1;
         }
         else if (!refinatorACTIVE) {
-//            if (time_stopped < 0.25) {
-//                if ((robot.pivotArm1.getZeroPowerBehavior() != DcMotor.ZeroPowerBehavior.FLOAT) ||
-//                robot.pivotArm2.getZeroPowerBehavior() != DcMotor.ZeroPowerBehavior.FLOAT) {
-//                    robot.pivotArm1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-//                    robot.pivotArm2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-//                }
-//            } else {
-//                if ((robot.pivotArm1.getZeroPowerBehavior() != DcMotor.ZeroPowerBehavior.BRAKE) ||
-//                        robot.pivotArm2.getZeroPowerBehavior() != DcMotor.ZeroPowerBehavior.BRAKE) {
-//                    robot.pivotArm1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-//                    robot.pivotArm2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-//                }
-//            }
-            if (endGameModeACTIVE) {
-                robot.pivotArm1.setPower(0);
-                robot.pivotArm2.setPower(0);
-            }
-            time_stopped += dt;
-            robot.pivotArm1.setPower(direction*Range.clip(abs(robot.pivotArm1.getPower())-(dt*4*abs(robot.pivotArm1.getPower()))-dt*0.5, 0, 1));
-            robot.pivotArm2.setPower(direction*Range.clip(abs(robot.pivotArm2.getPower())-(dt*4*abs(robot.pivotArm2.getPower()))-dt*0.5, 0, 1));
-        }
-
-        if (gamepad1.left_stick_button || gamepad1.right_stick_button || gamepad2.left_stick_button || gamepad2.right_stick_button) {
-            endGameModeSWITCHING = true;
-        }
-        else if (endGameModeSWITCHING) {
-            endGameModeSWITCHING = false;
-            if (endGameModeACTIVE)
-                endGameModeACTIVE = false;
-            else
-                endGameModeACTIVE = true;
+            robot.pivotArm1.setPower(0);
+            robot.pivotArm2.setPower(0);
         }
 
         if (gamepad1.right_trigger > 0)
