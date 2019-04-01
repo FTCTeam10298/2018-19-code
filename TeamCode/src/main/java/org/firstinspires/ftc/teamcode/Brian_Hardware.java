@@ -21,7 +21,8 @@ public class Brian_Hardware
     public DcMotor backLeftDrive      = null;
     public DcMotor frontRightDrive    = null;
     public DcMotor backRightDrive     = null;
-    public DcMotor extendoArm5000     = null;
+    public DcMotor extendoArm5000initial = null;
+    public DcMotorEx extendoArm5000   = null;
     public DcMotor pivotArm1initial   = null;
     public DcMotor pivotArm2initial   = null;
     public DcMotorEx pivotArm1        = null;
@@ -45,18 +46,19 @@ public class Brian_Hardware
         hwMap = ahwMap;
 
         // Define and initialize motors
-        frontLeftDrive = hwMap.dcMotor.get("front_left_drive");
-        backLeftDrive = hwMap.dcMotor.get("back_left_drive");
+        frontLeftDrive  = hwMap.dcMotor.get("front_left_drive");
+        backLeftDrive   = hwMap.dcMotor.get("back_left_drive");
         frontRightDrive = hwMap.dcMotor.get("front_right_drive");
-        backRightDrive = hwMap.dcMotor.get("back_right_drive");
+        backRightDrive  = hwMap.dcMotor.get("back_right_drive");
 
-        extendoArm5000 = hwMap.dcMotor.get("extendoArm_5000");
-        pivotArm1initial = hwMap.dcMotor.get("pivotArm1");
-        pivotArm2initial = hwMap.dcMotor.get("pivotArm2");
-        collectOtron = hwMap.dcMotor.get("collectOtron");
+        extendoArm5000initial = hwMap.dcMotor.get("extendoArm_5000");
+        pivotArm1initial      = hwMap.dcMotor.get("pivotArm1");
+        pivotArm2initial      = hwMap.dcMotor.get("pivotArm2");
+        collectOtron          = hwMap.dcMotor.get("collectOtron");
 
-        pivotArm1 = (DcMotorEx)pivotArm1initial;
-        pivotArm2 = (DcMotorEx)pivotArm2initial;
+        extendoArm5000 = (DcMotorEx)extendoArm5000initial;
+        pivotArm1      = (DcMotorEx)pivotArm1initial;
+        pivotArm2      = (DcMotorEx)pivotArm2initial;
 
         // Set direction for all motors
         frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
