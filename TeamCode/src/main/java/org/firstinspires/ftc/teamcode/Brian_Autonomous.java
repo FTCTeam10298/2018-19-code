@@ -135,7 +135,8 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
     static final double COUNTS_PER_DEGREE     = (COUNTS_PER_INCH*0.20672)+0.003703704; // Was 0.20672; // Found by testing
 
     static final double PIVOTARM_CONSTANT     = (1440.0 * 10.0 / 360.0)*(0.6667); // Constant that converts pivot arm to degrees (1440*10/360 for Torquenado)
-    static final double EXTENDOARM_CONSTANT   = /*encoder counts per out shaft revolution*/ 1120.0 * (/*sprocket ratio*/ 15.0 / 26.0) / (3. * Math.PI); // Constant that converts ExtendoArm to inches 1120 * 2/(3 * 3.14159265)
+//    static final double EXTENDOARM_CONSTANT   = /*encoder counts per out shaft revolution*/ 1120.0 * (/*sprocket ratio*/ 30.0 / 15.0) / (3.0 * Math.PI); // Constant that converts ExtendoArm to inches 1120 * 2/(3 * 3.14159265)
+    static final double EXTENDOARM_CONSTANT   = 1120.0 * 2.0 * 15.0 / 25.0 / (3. * Math.PI) * (30.0 / 26.0) * 1.1; // Constant that converts ExtendoArm to "inches" (not really, but don't want to re-adjust the whole auto
 
     ModernRoboticsI2cRangeSensor rangeSensor;
 
@@ -238,15 +239,9 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
 
         if (DoTask("Motor test", runmode, false)) {
             // Motor test (Uncomment out to test drive train encoders)
-            robot.backRightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            robot.backLeftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            robot.frontRightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            robot.frontLeftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            robot.driveSetMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-            robot.backLeftDrive.setPower(0.5);
-            robot.backRightDrive.setPower(0.5);
-            robot.frontLeftDrive.setPower(0.5);
-            robot.frontRightDrive.setPower(0.5);
+            robot.DrivePowerAll(0.5);
 
             robot.backRightDrive.setTargetPosition(5000);
             while (robot.backRightDrive.isBusy()) {
@@ -392,18 +387,18 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
                 }
             } else if (startposition == StartPosition.SILVER) {
                 if (sampling == Sampling.ONE && attemptExtraScore.getNumVal() >= 1) {
-                    PivotArmSetRotation(0.8, 105, false, true);
+                    PivotArmSetRotation(0.8, 110, false, true);
                     ExtendoArm5000_ACTIVATE(1, 21, true);
                     DriveRobotTurn(1, 20, true);
                     ExtendoArm5000_ACTIVATE(1, 0, false);
                     PivotArmSetRotation(0.8, 0, false, false);
                     sleep(200);
                     robot.collectorGate.setPosition(.25);
-                    sleep(300);
-                    robot.collectorGate.setPosition(.45);
-                    sleep(200);
-                    robot.collectorGate.setPosition(.25);
-                    sleep(900);
+                    sleep(1200);
+//                    robot.collectorGate.setPosition(.45);
+//                    sleep(200);
+//                    robot.collectorGate.setPosition(.25);
+//                    sleep(900);
 //                    PivotArmSetRotation(0.5, -5, false, true);
 //                    sleep(300);
 //                    PivotArmSetRotation(0.5, 5, false, true);
@@ -471,14 +466,17 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
                 }
 
                 if (sampling == Sampling.ONE && crater == Crater.NEAR) {
-                    DriveRobotPosition(1, -50, false);
+                    DriveRobotPosition(1, -40, false);
 //                    DriveRobotTurn(1, 190); // Spin around so we don't have to in TeleOp
 //                    DriveSidewaysTime(1, 1); // Strafe left
 //                    ExtendoArm5000_ACTIVATE(1, 10, true);
 //                    DriveRobotPosition(.6, 25, false);
                     //DriveSidewaysTime(1, -1); // Strafe right
-                    DriveRobotTurn(.5, -8, false);
-                    DriveRobotPosition(.6, -30, false);
+                    //DriveRobotTurn(.5, -8, false);
+                    DriveRobotTurn(.5, 180);
+                    DriveSidewaysTime(.5, 1);
+                    DriveRobotPosition(.6, 15, false);
+                    ExtendoArm5000_ACTIVATE(1, 8, true);
                 }
                 else if (sampling == Sampling.TWO) {
                     // Drive back varying amounts depending on sample
@@ -746,6 +744,9 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
         double ms = time*1000;
         sleep((int)ms);
         robot.DrivePowerAll(0);
+
+        robot.driveSetRunToPosition();
+        robot.driveSetTargetPosition(0, 0, 0, 0);
     }
 
     /**
@@ -796,7 +797,7 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
         else if (gold == Gold.RIGHT)
             DriveRobotTurn(.6, 33, true);
 
-        PivotArmSetRotation(.5, -5, false, true);
+        PivotArmSetRotation(.5, -8, false, true);
         DriveRobotPosition(.6, 24, true);
 
         if (startposition == StartPosition.SILVER && depot == Depot.NO && crater == Crater.NEAR && attemptExtraScore == ExtraScore.NO) {
@@ -815,7 +816,7 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
             sleep(500);
         }
         else {
-            PivotArmSetRotation(.5, 5, false, true);
+            PivotArmSetRotation(.5, 8, false, true);
         }
 
         DriveRobotPosition(.6, -24, true);
@@ -875,7 +876,7 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
                 dashboard.displayPrintf(10, "pivotArm1: %d target, %d current", robot.pivotArm1.getTargetPosition(), robot.pivotArm1.getCurrentPosition());
                 dashboard.displayPrintf(11, "pivotArm2: %d target, %d current", robot.pivotArm2.getTargetPosition(), robot.pivotArm2.getCurrentPosition());
                 if ((robot.pivotArm1.getVelocity() < 10 && robot.pivotArm1.getVelocity() > -10) &&
-                        (robot.pivotArm2.getVelocity() < 10 && robot.pivotArm2.getVelocity() > -10)) {
+                        (robot.pivotArm2.getVelocity() < 10 && robot.pivotArm2.getVelocity() > -10) && power != 0) {
                     dashboard.displayPrintf(12, "Warning: Failsafe invoked on pivotArmSetRotation()");
                     break;
                 }
@@ -914,9 +915,11 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
         if (asynkk)
             return;
 
+        sleep(250);
+
         while (robot.extendoArm5000.isBusy()) {
             dashboard.displayPrintf(10, "ExtendoArm: %d target, %d current", robot.extendoArm5000.getTargetPosition(), robot.extendoArm5000.getCurrentPosition());
-            if ((robot.extendoArm5000.getVelocity() < 10 && robot.extendoArm5000.getVelocity() > -10)) {
+            if ((robot.extendoArm5000.getVelocity() < 10 && robot.extendoArm5000.getVelocity() > -10) && power != 0) {
                 dashboard.displayPrintf(12, "Warning: Failsafe invoked on ExtendoArm5000_ACTIVATE()");
                 break;
             }
