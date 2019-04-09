@@ -215,8 +215,8 @@ public class Brian_Hardware
 
     double pivotArmGetPosition()
     {
-        // Sensor returns voltage from 0 to 3.34, normalize to a range of 0-1, then multiply by potentiometer range
-        return potentiometer.getVoltage() / 3.34 * 270;
+        // Sensor returns voltage from 0 to 3.34, normalize to a range of 0-1, then multiply by potentiometer range, them error
+        return potentiometer.getVoltage() / 3.34 * 270 * 1.578947368;
     }
 }
 

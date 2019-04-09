@@ -33,6 +33,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
 
 import static java.lang.Math.abs;
@@ -59,13 +60,14 @@ public class Brian_TeleOp extends OpMode {
 
     double time_a       = 0;
     double dt           = 0;
-    double time_stopped = 0;
     int    direction    = 1;
 
     boolean collectOtronACTIVE     = false;
     boolean collectOtronSWITCHING  = false;
     boolean collectOtronREVERSE    = false;
     boolean refinatorACTIVE        = false;
+
+    static final double PIVOTARM_CONSTANT     = (1440.0 * 10.0 / 360.0)*(0.6667); // Constant that converts pivot arm to degrees (1440*10/360 for Torquenado)
 
     // Code to run once when the driver hits INIT
     @Override
@@ -93,6 +95,7 @@ public class Brian_TeleOp extends OpMode {
         telemetry.addData("Arm power", "%f", robot.pivotArm1.getPower());
         telemetry.addData("Arm position (raw)", robot.potentiometer.getVoltage());
         telemetry.addData("Arm position (degrees)", robot.pivotArmGetPosition());
+        telemetry.addData("Current arm position (encoder counts)", robot.pivotArm1.getCurrentPosition());
 
         // Send telemetry message to signify robot running
         telemetry.addData("Say", "N8 is the gr8est without deb8");
@@ -175,28 +178,39 @@ public class Brian_TeleOp extends OpMode {
 
         if (gamepad1.y || gamepad2.y) {
             refinatorACTIVE = false;
-            time_stopped = 0;
+            robot.pivotArm1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            robot.pivotArm2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             robot.pivotArm1.setPower(1);
             robot.pivotArm2.setPower(1);
             direction = 1;
         }
         else if (gamepad1.a || gamepad2.a) {
             refinatorACTIVE = false;
-            time_stopped = 0;
+            robot.pivotArm1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            robot.pivotArm2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             robot.pivotArm1.setPower(-1);
             robot.pivotArm2.setPower(-1);
             direction = -1;
         }
         else if (gamepad1.x || gamepad2.x) {
             refinatorACTIVE = true;
-            time_stopped = 0;
+            robot.pivotArm1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            robot.pivotArm2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             robot.pivotArm1.setPower(-.3);
             robot.pivotArm2.setPower(-.3);
             direction = -1;
         }
-        else if (!refinatorACTIVE) {
+        else if (!refinatorACTIVE && robot.pivotArm1.getMode() == DcMotor.RunMode.RUN_USING_ENCODER
+                && robot.pivotArm2.getMode() == DcMotor.RunMode.RUN_USING_ENCODER) {
             robot.pivotArm1.setPower(0);
             robot.pivotArm2.setPower(0);
+        }
+
+        if (gamepad1.right_stick_button) {
+            double curr_position = robot.pivotArmGetPosition();
+            double target_position = 101;
+            double delta_position = target_position - curr_position;
+            PivotArmSetRotation(1, delta_position);
         }
 
         if (gamepad1.right_trigger > 0)
@@ -248,5 +262,22 @@ public class Brian_TeleOp extends OpMode {
     void DriveSideways (double power)
     {
         robot.driveSetPower(-power, power, power, -power);
+    }
+
+    void PivotArmSetRotation(double power, double degrees)
+    {
+        int position = (int)(degrees* PIVOTARM_CONSTANT);
+        if (robot.pivotArm1.getMode() != DcMotor.RunMode.RUN_TO_POSITION ||
+                robot.pivotArm2.getMode() != DcMotor.RunMode.RUN_TO_POSITION)
+        {
+            robot.pivotArm1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            robot.pivotArm2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            robot.pivotArm1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            robot.pivotArm2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        }
+        robot.pivotArm1.setPower(power);
+        robot.pivotArm2.setPower(power);
+        robot.pivotArm1.setTargetPosition(-position);
+        robot.pivotArm2.setTargetPosition(-position);
     }
 }
