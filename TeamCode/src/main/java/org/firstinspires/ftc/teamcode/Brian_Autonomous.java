@@ -300,7 +300,7 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
                 PivotArmSetRotation(1, -20, false, false);
                 PivotArmSetRotation(.5, 95, true, false);
                 DriveRobotPosition(.6, 8, true);
-                ExtendoArm5000_ACTIVATE(1,-1.5, true);
+                //ExtendoArm5000_ACTIVATE(1,-1.5, true);
                 if (startposition == StartPosition.GOLD && depot == Depot.YES) {
                     PivotArmSetRotation(1, -63, false, true);
                 } else {
@@ -336,6 +336,7 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
                 if (sampling == Sampling.ONE && attemptExtraScore == ExtraScore.YES) {
                     PivotArmSetRotation(1, 110, false, true);
                     ExtendoArm5000_ACTIVATE(1, 16, false);
+                    robot.collectOtron.setPower(0);
                     PivotArmSetRotation(1, 0, false, false);
                     //DriveRobotTurn(0.5, 10, true);
                     robot.collectorGate.setPosition(.25);
@@ -350,6 +351,7 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
                     //DriveRobotTurn(0.5, -10, true);
                 } else {
                     PivotArmSetRotation(1, 50, false, true);
+                    robot.collectOtron.setPower(0);
                 }
 
                 if (crater == Crater.FAR_DEFENSE)
@@ -389,7 +391,9 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
                 if (sampling == Sampling.ONE && attemptExtraScore.getNumVal() >= 1) {
                     PivotArmSetRotation(0.8, 110, false, true);
                     ExtendoArm5000_ACTIVATE(1, 21, true);
-                    DriveRobotTurn(1, 20, true);
+                    DriveRobotTurn(1, 25, true);
+                    robot.collectOtron.setPower(0);
+                    DriveRobotPosition(.4, -3, true);
                     ExtendoArm5000_ACTIVATE(1, 0, false);
                     PivotArmSetRotation(0.8, 0, false, false);
                     sleep(200);
@@ -437,6 +441,7 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
                     }
                 } else {
                     PivotArmSetRotation(1, 50, false, true);
+                    robot.collectOtron.setPower(0);
                 }
 
                 if (depot == Depot.NO) {
@@ -462,21 +467,16 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
                     sleep(1000);
                     robot.collectOtron.setPower(0);
                 } else {
-                    sleep(250);
+                    sleep(600);
                 }
 
                 if (sampling == Sampling.ONE && crater == Crater.NEAR) {
                     DriveRobotPosition(1, -40, false);
-//                    DriveRobotTurn(1, 190); // Spin around so we don't have to in TeleOp
-//                    DriveSidewaysTime(1, 1); // Strafe left
-//                    ExtendoArm5000_ACTIVATE(1, 10, true);
-//                    DriveRobotPosition(.6, 25, false);
-                    //DriveSidewaysTime(1, -1); // Strafe right
-                    //DriveRobotTurn(.5, -8, false);
-                    DriveRobotTurn(.5, 180);
+                    ExtendoArm5000_ACTIVATE(1, 15, true);
+                    DriveRobotTurn(.6, -180);
                     DriveSidewaysTime(.5, 1);
-                    DriveRobotPosition(.6, 15, false);
-                    ExtendoArm5000_ACTIVATE(1, 8, true);
+                    DriveRobotPosition(1, 20, false);
+
                 }
                 else if (sampling == Sampling.TWO) {
                     // Drive back varying amounts depending on sample
@@ -797,7 +797,7 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
         else if (gold == Gold.RIGHT)
             DriveRobotTurn(.6, 33, true);
 
-        PivotArmSetRotation(.5, -8, false, true);
+        PivotArmSetRotation(.5, -13, false, true);
         DriveRobotPosition(.6, 24, true);
 
         if (startposition == StartPosition.SILVER && depot == Depot.NO && crater == Crater.NEAR && attemptExtraScore == ExtraScore.NO) {
@@ -833,7 +833,6 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
             PivotArmSetRotation(0, -25, false, true);
         }
 
-        robot.collectOtron.setPower(0);
     }
 
     /**
