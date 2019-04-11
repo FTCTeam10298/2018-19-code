@@ -181,6 +181,9 @@ public class Brian_Hardware
                 backRightDrive.getMode()  != DcMotor.RunMode.RUN_TO_POSITION) {
             driveSetMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             driveSetMode(DcMotor.RunMode.RUN_TO_POSITION);
+            // When the encoder is reset, also reset the target position, so it doesn't add an old
+            // target position when using driveAddTargetPosition().
+            driveSetTargetPosition(0, 0, 0, 0);
         }
     }
 
