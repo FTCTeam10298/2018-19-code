@@ -275,14 +275,12 @@ public class Brian_TeleOp extends OpMode {
     void PivotArmSetRotation(double power, double degrees)
     {
         int position = (int)(degrees* PIVOTARM_CONSTANT);
-        if (robot.pivotArm1.getMode() != DcMotor.RunMode.RUN_TO_POSITION ||
-                robot.pivotArm2.getMode() != DcMotor.RunMode.RUN_TO_POSITION)
-        {
-            robot.pivotArm1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            robot.pivotArm2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            robot.pivotArm1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            robot.pivotArm2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        }
+
+        robot.pivotArm1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.pivotArm2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.pivotArm1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        robot.pivotArm2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
         robot.pivotArm1.setPower(power);
         robot.pivotArm2.setPower(power);
         robot.pivotArm1.setTargetPosition(-position);
