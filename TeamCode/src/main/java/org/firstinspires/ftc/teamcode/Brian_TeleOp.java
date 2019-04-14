@@ -101,10 +101,18 @@ public class Brian_TeleOp extends OpMode {
         telemetry.addData("Say", "N8 is the gr8est without deb8");
         //telemetry.addData("Extension arm encoder count", robot.extendoArm5000.getCurrentPosition());
 
-        if (gamepad1.dpad_down || gamepad2.dpad_down) {
-            robot.DrivePowerAll(.5);
+        if ((gamepad1.dpad_down && gamepad1.dpad_left) || (gamepad2.dpad_down && gamepad2.dpad_left)) {
+            robot.driveSetPower(-0.3, -1, -0.3, -1);
+        } else if ((gamepad1.dpad_up && gamepad1.dpad_left) || (gamepad2.dpad_up && gamepad2.dpad_left)) {
+            robot.driveSetPower(0.3, 1, 0.3, 1);
+        } else if ((gamepad1.dpad_down && gamepad1.dpad_right) || (gamepad2.dpad_down && gamepad2.dpad_right)) {
+            robot.driveSetPower(-1, -0.27, -1, -0.27);
+        } else if ((gamepad1.dpad_up && gamepad1.dpad_right) || (gamepad2.dpad_up && gamepad2.dpad_right)) {
+            robot.driveSetPower(1, 0.27, 1, 0.27);
+        } else if (gamepad1.dpad_down || gamepad2.dpad_down) {
+            robot.DrivePowerAll(-1);
         } else if (gamepad1.dpad_up || gamepad2.dpad_up) {
-            robot.DrivePowerAll(-.5);
+            robot.DrivePowerAll(1);
         } else if (gamepad1.dpad_right || gamepad2.dpad_right) {
             DriveSideways(.5);
         } else if (gamepad1.dpad_left || gamepad2.dpad_left) {
@@ -131,9 +139,9 @@ public class Brian_TeleOp extends OpMode {
             }
 
             if (gamepad1.right_stick_x > .1 || gamepad1.right_stick_x < -.1) {
-                z = -gamepad1.right_stick_x / 2;
+                z = -gamepad1.right_stick_x*0.8;
             } else if (gamepad2.right_stick_x > .1 || gamepad2.right_stick_x < -.1) {
-                z = -gamepad2.right_stick_x / 2;
+                z = -gamepad2.right_stick_x*0.8;
             }
             else {
                 z = 0;
@@ -164,12 +172,12 @@ public class Brian_TeleOp extends OpMode {
             if ((frontLeftPower > 0.1 || frontRightPower > 0.1 || backLeftPower > 0.1 || backRightPower > 0.1)
                     || (frontLeftPower < -0.1 || frontRightPower < -0.1 || backLeftPower < -0.1 || backRightPower < -0.1))
             {
-                inertia += (0.4*dt);
+                inertia += (0.6*dt);
                 inertia = Range.clip(inertia, 0, 1);
             }
             else
             {
-                inertia = 0.5;
+                inertia = 0.4;
             }
 
             robot.driveSetPower(frontLeftPower*inertia, frontRightPower*inertia,
