@@ -123,21 +123,6 @@ public class Brian_Hardware
     }
 
     /**
-     * Sleeps for the given amount of milliseconds, or until the thread is interrupted. This is
-     * simple shorthand for the operating-system-provided {@link Thread#sleep(long) sleep()} method.
-     *
-     * @param milliseconds amount of time to sleep, in milliseconds
-     * @see Thread#sleep(long)
-     */
-//    public final void sleep(long milliseconds) {
-//        try {
-//            Thread.sleep(milliseconds);
-//        } catch (InterruptedException e) {
-//            Thread.currentThread().interrupt();
-//        }
-//    }
-
-    /**
      * DrivePowerAll sets all of the drive train motors to the specified power level.
      * @param power Power level to set all motors to
      */
@@ -218,7 +203,7 @@ public class Brian_Hardware
 
     double pivotArmGetPosition()
     {
-        // Sensor returns voltage from 0 to 3.34, normalize to a range of 0-1, then multiply by potentiometer range, them error
+        // Sensor returns voltage from 0 to 3.34, normalize to a range of 0-1, then multiply by potentiometer range, then error
         return potentiometer.getVoltage() / 3.34 * 270 * 1.578947368;
     }
 }
