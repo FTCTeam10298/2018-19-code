@@ -102,21 +102,21 @@ public class Brian_TeleOp extends OpMode {
         //telemetry.addData("Extension arm encoder count", robot.extendoArm5000.getCurrentPosition());
 
         if ((gamepad1.dpad_down && gamepad1.dpad_left) || (gamepad2.dpad_down && gamepad2.dpad_left)) {
-            robot.driveSetPower(-0.3, -1, -0.3, -1);
+            robot.driveSetPower(-0.28, -1, -0.28, -1);
         } else if ((gamepad1.dpad_up && gamepad1.dpad_left) || (gamepad2.dpad_up && gamepad2.dpad_left)) {
-            robot.driveSetPower(0.3, 1, 0.3, 1);
+            robot.driveSetPower(0.28, 1, 0.28, 1);
         } else if ((gamepad1.dpad_down && gamepad1.dpad_right) || (gamepad2.dpad_down && gamepad2.dpad_right)) {
-            robot.driveSetPower(-1, -0.27, -1, -0.27);
+            robot.driveSetPower(-1, -0.25, -1, -0.25);
         } else if ((gamepad1.dpad_up && gamepad1.dpad_right) || (gamepad2.dpad_up && gamepad2.dpad_right)) {
-            robot.driveSetPower(1, 0.27, 1, 0.27);
+            robot.driveSetPower(1, 0.25, 1, 0.25);
         } else if (gamepad1.dpad_down || gamepad2.dpad_down) {
             robot.DrivePowerAll(-1);
         } else if (gamepad1.dpad_up || gamepad2.dpad_up) {
             robot.DrivePowerAll(1);
         } else if (gamepad1.dpad_right || gamepad2.dpad_right) {
-            DriveSideways(-.5);
-        } else if (gamepad1.dpad_left || gamepad2.dpad_left) {
             DriveSideways(.5);
+        } else if (gamepad1.dpad_left || gamepad2.dpad_left) {
+            DriveSideways(-.5);
         }
         // Drone drive
         else {

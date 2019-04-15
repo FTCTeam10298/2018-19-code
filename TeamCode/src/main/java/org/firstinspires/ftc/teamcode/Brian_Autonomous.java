@@ -33,6 +33,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -176,11 +177,11 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
         // Run though the menu ---------------------------------------------------------------------
         doMenus();
 
-        if (startposition == StartPosition.SILVER && crater == Crater.FAR) {
-            dashboard.displayPrintf(1, "You picked the wrong option, Stephanie!");
-            crater = Crater.NEAR;
-            errors += 1;
-        }
+//        if (startposition == StartPosition.SILVER && crater == Crater.FAR) {
+//            dashboard.displayPrintf(1, "You picked the wrong option, Stephanie!");
+//            crater = Crater.NEAR;
+//            errors += 1;
+//        }
 
         if (startposition == StartPosition.GOLD && sampling == Sampling.TWO) {
             dashboard.displayPrintf(1, "You picked the wrong option, Stephanie!");
@@ -291,10 +292,10 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
             if (hanging == Lift.YES) {
                 ExtendoArm5000_ACTIVATE_abs(1, 4, false);
                 ExtendoArm5000_ACTIVATE_abs(1, 13, true);
-                PivotArmSetRotationAbs(1, -15, false);
+                PivotArmSetRotationAbs(1, -14, false);
                 PivotArmSetRotationAbs(.5, 90, false);
-                DriveRobotPosition(0.3, -1, false);
-                DriveRobotPosition(.7, 8, true);
+                DriveRobotPosition(.3, -3, false);
+                DriveRobotPosition(.6, 10, true);
                 if (startposition == StartPosition.GOLD && depot == Depot.YES) {
                     PivotArmSetRotationAbs(1, 15, true);
                 } else {
@@ -396,7 +397,7 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
                 }
             } else if (startposition == StartPosition.SILVER) {
                 if (sampling == Sampling.ONE && attemptExtraScore.getNumVal() >= 1) {
-                    PivotArmSetRotationAbs(1, 120, true);
+                    PivotArmSetRotationAbs(1, 115, true);
                     ExtendoArm5000_ACTIVATE_abs(1, 27, true);
                     DriveRobotTurn(1, 25, true);
                     robot.collectOtron.setPower(0);
@@ -410,6 +411,7 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
 //                    robot.collectorGate.setPosition(.25);
 //                    sleep(900);
                     robot.collectorGate.setPosition(.65);
+                    sleep(100);
 
                     if (attemptExtraScore == ExtraScore.DELIVER_ALL_THE_THINGS && depot == Depot.NO) {
                         for (int i=0; i<2; i++) {
@@ -436,7 +438,7 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
                         }
                     }
                     else {
-                        PivotArmSetRotationAbs(1, 55, true);
+                        PivotArmSetRotationAbs(.5, 55, true);
                         sleep(400);
                         ExtendoArm5000_ACTIVATE_abs(1, 5, true);
                         DriveRobotTurn(1, -25, true);
@@ -464,13 +466,7 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
                 // Deposit team marker
                 DriveRobotTurn(1, -5);
                 robot.markerDumper.setPosition(0.7);
-                if (sampling == Sampling.ONE && attemptExtraScore == ExtraScore.NO) {
-                    robot.collectOtron.setPower(-.7);
-                    sleep(1000);
-                    robot.collectOtron.setPower(0);
-                } else {
-                    sleep(600);
-                }
+                sleep(600);
 
                 if (sampling == Sampling.ONE && crater == Crater.NEAR) {
                     DriveRobotPosition(1, -40, false);
@@ -478,6 +474,17 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
                     DriveRobotTurn(.7, -180);
                     DriveSidewaysTime(.5, 1);
                     DriveRobotPosition(1, 20, true);
+                }
+                else if (sampling == Sampling.ONE && crater == Crater.FAR) {
+                    DriveSidewaysTime(.3, -1);
+                    DriveRobotDistanceToObject(1, 24, true);
+                    DriveRobotPosition(1, -19, true);
+                    DriveRobotArc(1, -46, -.2);
+                    DriveRobotPosition(.7, -15, true);
+                    robot.collectOtron.setPower(1);
+                    PivotArmSetRotation(1, -35, true);
+                    ExtendoArm5000_ACTIVATE_abs(1, 24, true);
+                    DriveRobotTurn(.7, 85);
                 }
                 else if (sampling == Sampling.TWO) {
                     // Drive back varying amounts depending on sample
@@ -788,75 +795,62 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
 
     void DriveRobotArc(double power, double inches, double difference)
     {
-        int state = 0; // 0 = NONE, 1 = ACCEL, 2 = DRIVE, 3 = DECEL
         double position = inches*COUNTS_PER_INCH;
-
-        robot.driveSetRunToPosition();
-
+        difference = Range.clip(difference, -1, 1);
+//power 1, inches -48, difference -.5
+        robot.driveSetMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         if (difference > 0) {
             robot.frontRightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             robot.backRightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            robot.frontLeftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            robot.backLeftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         }
         else {
+            robot.frontRightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            robot.backRightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             robot.frontLeftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            robot.backRightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            robot.backLeftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
 
-        if (difference > 0)
-            robot.driveSetPower(abs(power), abs(power-difference), abs(power), abs(power-difference));
-        else
-            robot.driveSetPower(abs(power-difference), abs(power), abs(power-difference), abs(power));
-        robot.DrivePowerAll(abs(power)); // Use abs() to make sure power is positive
+        if (difference > 0 && inches > 0)
+            robot.driveSetPower(abs(power), abs(power*difference), abs(power), abs(power*difference));
+        else if (difference > 0 && inches < 0)
+            robot.driveSetPower(abs(power), -abs(power*difference), abs(power), -abs(power*difference));
+        else if (difference < 0 && inches > 0)
+            robot.driveSetPower(abs(power*difference), abs(power), abs(power*difference), abs(power));
+        else if (difference < 0 && inches < 0)
+            robot.driveSetPower(-abs(power*difference), abs(power), -abs(power*difference), abs(power));
 
-        int flOrigTarget = robot.frontLeftDrive.getTargetPosition();
-        int frOrigTarget = robot.frontRightDrive.getTargetPosition();
-        int blOrigTarget = robot.backLeftDrive.getTargetPosition();
-        int brOrigTarget = robot.backRightDrive.getTargetPosition();
-        robot.driveAddTargetPosition((int)position, (int)position, (int)position, (int)position);
-
+        if (difference > 0) {
+            robot.frontLeftDrive.setTargetPosition((int)position);
+            robot.backLeftDrive.setTargetPosition((int)position);
+        }
+        else {
+            robot.frontRightDrive.setTargetPosition((int)position);
+            robot.backRightDrive.setTargetPosition((int)position);
+        }
         for (int i=0; i < 5; i++) {    // Repeat check 5 times, sleeping 10ms between,
             // as isBusy can be a bit unreliable
-            while (robot.driveAllAreBusy()) {
-                int flDrive = robot.frontLeftDrive.getCurrentPosition();
-                int frDrive = robot.frontRightDrive.getCurrentPosition();
-                int blDrive = robot.backLeftDrive.getCurrentPosition();
-                int brDrive = robot.backRightDrive.getCurrentPosition();
-                dashboard.displayPrintf(3, "Front left encoder: %d", flDrive);
-                dashboard.displayPrintf(4, "Front right encoder: %d", frDrive);
-                dashboard.displayPrintf(5, "Back left encoder: %d", blDrive);
-                dashboard.displayPrintf(6, "Back right encoder %d", brDrive);
-
-                // State magic
-                if (state == 1 &&
-                        (abs(flDrive-flOrigTarget) > 2*COUNTS_PER_INCH ||
-                                abs(frDrive-frOrigTarget) > 2*COUNTS_PER_INCH ||
-                                abs(blDrive-blOrigTarget) > 2*COUNTS_PER_INCH ||
-                                abs(brDrive-brOrigTarget) > 2*COUNTS_PER_INCH )) {
-                    // We have gone 2 inches, go to full power
-                    robot.DrivePowerAll(abs(power)); // Use abs() to make sure power is positive
-                    state = 2;
+            if (difference > 0) {
+                while (robot.frontLeftDrive.isBusy() && robot.backLeftDrive.isBusy()) {
+                    int flDrive = robot.frontLeftDrive.getCurrentPosition();
+                    int blDrive = robot.backLeftDrive.getCurrentPosition();
+                    dashboard.displayPrintf(3, "Front left encoder: %d", flDrive);
+                    dashboard.displayPrintf(4, "Back left encoder: %d", blDrive);
                 }
-                else if (state == 2 &&
-                        (abs(flDrive-flOrigTarget) > COUNTS_PER_INCH*(abs(inches)-2) ||
-                                abs(frDrive-frOrigTarget) > COUNTS_PER_INCH*(abs(inches)-2) ||
-                                abs(blDrive-blOrigTarget) > COUNTS_PER_INCH*(abs(inches)-2) ||
-                                abs(brDrive-brOrigTarget) > COUNTS_PER_INCH*(abs(inches)-2) )) {
-                    // Cut power by half to DECEL
-                    robot.DrivePowerAll(abs(power)/2); // Use abs() to make sure power is positive
-                    state = 3; // We are DECELing now
+            }
+            else {
+                while (robot.frontRightDrive.isBusy() && robot.backRightDrive.isBusy()) {
+                    int frDrive = robot.frontRightDrive.getCurrentPosition();
+                    int brDrive = robot.backRightDrive.getCurrentPosition();
+                    dashboard.displayPrintf(3, "Front left encoder: %d", frDrive);
+                    dashboard.displayPrintf(4, "Back left encoder: %d", brDrive);
                 }
-                dashboard.displayPrintf(7, "State: %d (0=NONE,1=ACCEL,2=DRIVING,3=DECEL", state);
             }
             sleep(10);
         }
 
         robot.DrivePowerAll(0);
-        // Clear used section of dashboard
-        dashboard.displayText(3, "");
-        dashboard.displayText(4, "");
-        dashboard.displayText(5, "");
-        dashboard.displayText(6, "");
-        dashboard.displayText(7, "");
     }
 
     void DriveSample () {
@@ -872,7 +866,10 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
             DriveRobotTurn(.6, 30, true);
 
         PivotArmSetRotationAbs(.5, -15, true);
-        DriveRobotPosition(.6, 10, true);
+        if (gold == Gold.CENTER)
+            DriveRobotPosition(.6, 10, true);
+        else
+            ExtendoArm5000_ACTIVATE(1, 7, true);
         ExtendoArm5000_ACTIVATE(1,0, false); // Wait for extension to finish
 
         if (startposition == StartPosition.SILVER && depot == Depot.NO && crater == Crater.NEAR && attemptExtraScore == ExtraScore.NO) {
@@ -891,13 +888,14 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
             sleep(500);
         }
         else {
-            ExtendoArm5000_ACTIVATE_abs(1, 26, true);
+            if (gold == Gold.CENTER)
+                ExtendoArm5000_ACTIVATE_abs(1, 26, true);
+            else
+                ExtendoArm5000_ACTIVATE_abs(1, 19, true);
             PivotArmSetRotationAbs(1, 10, true);
         }
 
-        if (gold != Gold.CENTER)
-            DriveRobotPosition(.6, -10, true);
-        else
+        if (gold == Gold.CENTER)
             DriveRobotPosition(.6, -14, true);
 
         if (gold == Gold.LEFT)
