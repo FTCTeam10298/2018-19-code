@@ -114,9 +114,9 @@ public class Brian_TeleOp extends OpMode {
         } else if (gamepad1.dpad_up || gamepad2.dpad_up) {
             robot.DrivePowerAll(1);
         } else if (gamepad1.dpad_right || gamepad2.dpad_right) {
-            DriveSideways(.5);
-        } else if (gamepad1.dpad_left || gamepad2.dpad_left) {
             DriveSideways(-.5);
+        } else if (gamepad1.dpad_left || gamepad2.dpad_left) {
+            DriveSideways(.5);
         }
         // Drone drive
         else {
@@ -214,7 +214,7 @@ public class Brian_TeleOp extends OpMode {
             robot.pivotArm2.setPower(0);
         }
 
-        if (gamepad1.right_stick_button) {
+        if (gamepad1.right_stick_button || gamepad2.right_stick_button) {
             double curr_position = robot.pivotArmGetPosition();
             double target_position = 101;
             double delta_position = target_position - curr_position;
