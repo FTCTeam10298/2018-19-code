@@ -114,7 +114,7 @@ public class Brian_Hardware
         collectorGate = hwMap.servo.get("extension_lock");
         markerDumper = hwMap.servo.get("marker_dumper");
 
-        collectorGate.setPosition(.65);
+        collectorGate.setPosition(.68);
         markerDumper.setPosition(0);
 
         // Initialize arm position sensor

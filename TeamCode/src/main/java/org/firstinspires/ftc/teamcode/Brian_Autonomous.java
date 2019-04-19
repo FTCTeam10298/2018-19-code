@@ -291,7 +291,7 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
         if (DoTask("Init", runmode, true)) {
             if (hanging == Lift.YES) {
                 ExtendoArm5000_ACTIVATE_abs(1, 4, false);
-                ExtendoArm5000_ACTIVATE_abs(1, 13, true);
+                ExtendoArm5000_ACTIVATE_abs(1, 11, true);
                 PivotArmSetRotationAbs(1, -14, false);
                 PivotArmSetRotationAbs(.5, 90, false);
                 DriveRobotPosition(.3, -3, false);
@@ -505,47 +505,49 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
                 else if (sampling == Sampling.TWO) {
                     // Drive back varying amounts depending on sample
                     if (gold == Gold.LEFT)
-                        DriveRobotDistanceToObject(1, 14, true);
+                        DriveRobotDistanceToObject(1, 20, true);
                     else if (gold == Gold.CENTER)
-                        DriveRobotDistanceToObject(1, 26, true);
+                        DriveRobotDistanceToObject(1, 30, true);
                     else
-                        DriveRobotDistanceToObject(1, 36, true);
+                        DriveRobotDistanceToObject(1, 39, true);
 
-                    DriveRobotTurn(1, -90, true);
+                    DriveRobotTurn(1, -92, true);
 
                     // Extend arm and collect gold mineral
                     robot.collectOtron.setPower(1);
                     if (gold == Gold.LEFT) {
                         PivotArmSetRotationAbs(1, -10, true);
-                        DriveRobotPosition(.7, 13, true);
-                        ExtendoArm5000_ACTIVATE(1, 12, false);
+                        DriveRobotPosition(.7, 9, true);
+                        ExtendoArm5000_ACTIVATE(1, 7, false);
                         ExtendoArm5000_ACTIVATE(1, -12, true);
                         DriveRobotPosition(.7, -13, true);
                     } else if (gold == Gold.CENTER) {
                         PivotArmSetRotationAbs(1, -10, true);
-                        ExtendoArm5000_ACTIVATE(1, 18, false);
-                        ExtendoArm5000_ACTIVATE(1, -8, false);
+                        ExtendoArm5000_ACTIVATE_abs(1, 14, false);
+                        ExtendoArm5000_ACTIVATE(1, 4, false);
+                        ExtendoArm5000_ACTIVATE(1, -4, false);
                         ExtendoArm5000_ACTIVATE(1, -10, true);
                     } else {
+                        ExtendoArm5000_ACTIVATE_abs(1, 3, false);
                         PivotArmSetRotationAbs(1, -15, false);
                         ExtendoArm5000_ACTIVATE(1, 5, false);
-                        ExtendoArm5000_ACTIVATE(1, -5, false);
+                        //ExtendoArm5000_ACTIVATE(1, -5, false);
                     }
+                    sleep(150);
                     PivotArmSetRotationAbs(1, 45, true);
+                    sleep(200);
+                    robot.collectOtron.setPower(0);
 
                     DriveRobotTurn(1, 90);
-                    robot.collectOtron.setPower(0);
 
                     DriveRobotDistanceToObject(1, 60, false);
 
-//                    DriveRobotTurn(1, 190); // Spin around so we don't have to in TeleOp
-//                    DriveSidewaysTime(0.5, 1); // Strafe left
-//                    ExtendoArm5000_ACTIVATE(1, 10, true);
-//                    DriveRobotPosition(1, 36, false);
-
-                    //DriveSidewaysTime(0.5, -1); // Strafe right
-                    DriveRobotTurn(1, -8, false);
-                    DriveRobotPosition(1, -36, false);
+                    ExtendoArm5000_ACTIVATE_abs(1, 22, true);
+                    DriveRobotTurn(.7, -180);
+                    DriveSidewaysTime(.5, 1);
+                    PivotArmSetRotation(1, -20, true);
+                    DriveRobotPosition(1, 22, true);
+                    PivotArmSetRotation(1, -35, false);
                 }
             }
         }
@@ -873,7 +875,7 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
         robot.collectOtron.setPower(1);
 
         if (gold != Gold.CENTER) {
-            ExtendoArm5000_ACTIVATE_abs(1, 15, true);
+            ExtendoArm5000_ACTIVATE_abs(1, 14, true);
         }
 
         if (gold == Gold.LEFT)
@@ -910,6 +912,9 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
                 ExtendoArm5000_ACTIVATE_abs(1, 19, true);
             PivotArmSetRotationAbs(1, 10, true);
         }
+
+        if (sampling == Sampling.TWO)
+            ExtendoArm5000_ACTIVATE(1, -6, false);
 
         if (gold == Gold.CENTER)
             DriveRobotPosition(.6, -14, true);

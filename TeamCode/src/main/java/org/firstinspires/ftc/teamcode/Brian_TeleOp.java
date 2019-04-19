@@ -66,6 +66,11 @@ public class Brian_TeleOp extends OpMode {
     boolean collectOtronSWITCHING  = false;
     boolean collectOtronREVERSE    = false;
     boolean refinatorACTIVE        = false;
+    boolean hangPositionACTIVE     = false;
+    boolean endGameModeACTIVE      = false;
+    boolean endGameModeSWITCHING   = false;
+
+    double target_position = 0.638;
 
     static final double PIVOTARM_CONSTANT     = (1440.0 * 10.0 / 360.0)*(0.6667); // Constant that converts pivot arm to degrees (1440*10/360 for Torquenado)
 
@@ -184,41 +189,79 @@ public class Brian_TeleOp extends OpMode {
                                 backLeftPower*inertia, backRightPower*inertia);
         }
 
+        if (gamepad1.left_stick_button || gamepad2.left_stick_button) {
+            endGameModeSWITCHING = true;
+        }
+        else if (endGameModeSWITCHING) {
+            endGameModeSWITCHING = false;
+            if (endGameModeACTIVE)
+                endGameModeACTIVE = false;
+            else
+                endGameModeACTIVE = true;
+        }
+
         if (gamepad1.y || gamepad2.y) {
             refinatorACTIVE = false;
+            hangPositionACTIVE = false;
             robot.pivotArm1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             robot.pivotArm2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            robot.pivotArm1.setPower(1);
-            robot.pivotArm2.setPower(1);
+            if (endGameModeACTIVE) {
+                robot.pivotArm1.setPower(0.25);
+                robot.pivotArm2.setPower(0.25);
+            }
+            else {
+                robot.pivotArm1.setPower(1);
+                robot.pivotArm2.setPower(1);
+            }
             direction = 1;
         }
         else if (gamepad1.a || gamepad2.a) {
             refinatorACTIVE = false;
+            hangPositionACTIVE = false;
             robot.pivotArm1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             robot.pivotArm2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            robot.pivotArm1.setPower(-1);
-            robot.pivotArm2.setPower(-1);
+            if (endGameModeACTIVE) {
+                robot.pivotArm1.setPower(-0.25);
+                robot.pivotArm2.setPower(-0.25);
+            }
+            else {
+                robot.pivotArm1.setPower(-1);
+                robot.pivotArm2.setPower(-1);
+            }
             direction = -1;
         }
         else if (gamepad1.x || gamepad2.x) {
             refinatorACTIVE = true;
+            hangPositionACTIVE = false;
             robot.pivotArm1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             robot.pivotArm2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             robot.pivotArm1.setPower(-.3);
             robot.pivotArm2.setPower(-.3);
             direction = -1;
         }
-        else if (!refinatorACTIVE && robot.pivotArm1.getMode() == DcMotor.RunMode.RUN_USING_ENCODER
-                && robot.pivotArm2.getMode() == DcMotor.RunMode.RUN_USING_ENCODER) {
+        else if (hangPositionACTIVE && robot.potentiometer.getVoltage() > (target_position + 0.1)) {
+            robot.pivotArm1.setPower(1);
+            robot.pivotArm2.setPower(1);
+        }
+        else if (hangPositionACTIVE && robot.potentiometer.getVoltage() < (target_position - 0.1)) {
+            robot.pivotArm1.setPower(-1);
+            robot.pivotArm2.setPower(-1);
+        }
+        else if (hangPositionACTIVE && robot.potentiometer.getVoltage() > (target_position + 0.02)) {
+            robot.pivotArm1.setPower(0.1);
+            robot.pivotArm2.setPower(0.1);
+        }
+        else if (hangPositionACTIVE && robot.potentiometer.getVoltage() < (target_position - 0.02)) {
+            robot.pivotArm1.setPower(-0.1);
+            robot.pivotArm2.setPower(-0.1);
+        }
+        else if (!refinatorACTIVE) {
             robot.pivotArm1.setPower(0);
             robot.pivotArm2.setPower(0);
         }
 
         if (gamepad1.right_stick_button || gamepad2.right_stick_button) {
-            double curr_position = robot.pivotArmGetPosition();
-            double target_position = 101;
-            double delta_position = target_position - curr_position;
-            PivotArmSetRotation(1, delta_position);
+            hangPositionACTIVE = true;
         }
 
         if (gamepad1.right_trigger > 0)
@@ -259,7 +302,7 @@ public class Brian_TeleOp extends OpMode {
         if (gamepad1.b || gamepad2.b)
             robot.collectorGate.setPosition(.25);
         else {
-            robot.collectorGate.setPosition(.65);
+            robot.collectorGate.setPosition(.68);
         }
 
     }
