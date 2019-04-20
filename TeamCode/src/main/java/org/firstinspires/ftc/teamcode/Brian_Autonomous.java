@@ -357,7 +357,7 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
                 }
 
                 if (crater == Crater.FAR) {
-                    DriveRobotTurn(.5, -75);
+                    DriveRobotTurn(.5, -85);
                     DriveRobotPosition(.8, 40, true);
                     DriveRobotTurn(1, -45, false);
                     ExtendoArm5000_ACTIVATE_abs(1, 19, true);
@@ -379,7 +379,7 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
                     DriveRobotPosition(1, 11, false);
                 }
                 else if (crater == Crater.NEAR_DEFENSE) {
-                    DriveRobotPosition(1, -2, true);
+                    DriveRobotPosition(1, -7, true);
                     DriveRobotTurn(1, -42, true);
                     DriveRobotPosition(1, -40, true);
                     DriveRobotTurn(1, 30, true);
@@ -387,11 +387,11 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
                     PivotArmSetRotationAbs(1, 20, true);
                     sleep(200);
                     DriveRobotTurn(1, 70, true);
-                    ExtendoArm5000_ACTIVATE_abs(1, 19, false);
+                    ExtendoArm5000_ACTIVATE_abs(1, 24, false);
                     sleep(10000);
                 }
                 else if (crater == Crater.FAR_DEFENSE) {
-                    DriveRobotPosition(1, -2, true);
+                    DriveRobotPosition(1, -7, true);
                     DriveRobotTurn(1, 45, true);
                     DriveRobotPosition(1, -40, true);
                     DriveRobotTurn(1, -30, true);
@@ -399,7 +399,7 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
                     PivotArmSetRotationAbs(1, 20, true);
                     sleep(200);
                     DriveRobotTurn(1, -70, true);
-                    ExtendoArm5000_ACTIVATE_abs(1, 19, false);
+                    ExtendoArm5000_ACTIVATE_abs(1, 24, false);
                     sleep(10000);
 
                 }
