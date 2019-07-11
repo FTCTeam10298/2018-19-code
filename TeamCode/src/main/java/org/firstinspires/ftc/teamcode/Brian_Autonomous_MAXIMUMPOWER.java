@@ -321,8 +321,7 @@ public class Brian_Autonomous_MAXIMUMPOWER extends LinearOpMode implements FtcMe
                     ExtendoArm5000_ACTIVATE_abs(1, 30, false); // Wait for extension to finish
                     PivotArmSetRotation(1, 0, false); // Wait for pivot to finish
 
-                    ExtendoArm5000_ACTIVATE(1, 5, false); // Collect
-                    sleep(500);
+                    DriveRobotPosition(.5, 10, true);
                     ExtendoArm5000_ACTIVATE_abs(1, 30, true);
 
                     PivotArmSetRotationAbs(1, 115, true);
@@ -343,8 +342,7 @@ public class Brian_Autonomous_MAXIMUMPOWER extends LinearOpMode implements FtcMe
                             DriveRobotPosition(.5, 10, true);
                             PivotArmSetRotation(1, 0, false); // Wait for pivot to finish
 
-                            ExtendoArm5000_ACTIVATE(1, 5, false); // Collect
-                            sleep(500);
+                            DriveRobotPosition(.5, 10, true);
                             ExtendoArm5000_ACTIVATE_abs(1, 30, true);
 
                             PivotArmSetRotationAbs(1, 115, true);
