@@ -316,16 +316,16 @@ public class Brian_Autonomous_MAXIMUMPOWER extends LinearOpMode implements FtcMe
                     ExtendoArm5000_ACTIVATE_abs(1, 30, true);
                     PivotArmSetRotationAbs(1, -5, true);
                     sleep(1500);
-                    DriveRobotPosition(.5, 10, true);
+                    DriveRobotPosition(.5, 13, true);
 
                     ExtendoArm5000_ACTIVATE_abs(1, 30, false); // Wait for extension to finish
                     PivotArmSetRotation(1, 0, false); // Wait for pivot to finish
 
-                    DriveRobotPosition(.5, 10, true);
+                    DriveRobotPosition(.5, 7, true);
                     ExtendoArm5000_ACTIVATE_abs(1, 30, true);
 
-                    PivotArmSetRotationAbs(1, 115, true);
-                    DriveRobotPosition(.5, -10, true);
+                    PivotArmSetRotationAbs(1, 110, true);
+                    DriveRobotPosition(.5, -20.5, true);
                     robot.collectOtron.setPower(-0.5);
                     PivotArmSetRotation(1, 0, false); // Wait for pivot to finish
 
@@ -339,14 +339,14 @@ public class Brian_Autonomous_MAXIMUMPOWER extends LinearOpMode implements FtcMe
                             robot.collectOtron.setPower(1);
                             PivotArmSetRotationAbs(1, -5, true);
                             sleep(1500);
-                            DriveRobotPosition(.5, 10, true);
+                            DriveRobotPosition(.5, 13, true);
                             PivotArmSetRotation(1, 0, false); // Wait for pivot to finish
 
-                            DriveRobotPosition(.5, 10, true);
+                            DriveRobotPosition(.5, 7, true);
                             ExtendoArm5000_ACTIVATE_abs(1, 30, true);
 
-                            PivotArmSetRotationAbs(1, 115, true);
-                            DriveRobotPosition(.5, -10, true);
+                            PivotArmSetRotationAbs(1, 110, true);
+                            DriveRobotPosition(.5, -20.5, true);
                             robot.collectOtron.setPower(-0.5);
                             PivotArmSetRotationAbs(1, 125, false);
 

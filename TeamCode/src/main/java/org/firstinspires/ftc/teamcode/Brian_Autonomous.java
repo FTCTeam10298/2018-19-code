@@ -540,13 +540,13 @@ public class Brian_Autonomous extends LinearOpMode implements FtcMenu.MenuButton
 
                     DriveRobotTurn(1, 90);
 
-                    DriveRobotDistanceToObject(1, 60, false);
+                    DriveRobotDistanceToObject(1, 68, false);
 
                     ExtendoArm5000_ACTIVATE_abs(1, 22, true);
                     DriveRobotTurn(.7, -180);
                     DriveSidewaysTime(.5, 1);
                     PivotArmSetRotation(1, -20, true);
-                    DriveRobotPosition(1, 22, true);
+                    DriveRobotPosition(1, 14, true);
                     PivotArmSetRotation(1, -35, false);
                 }
             }
